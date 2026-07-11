@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import User from "../models/User";
 import Token from "../models/Token";
+import EditDetailsRequest from "../models/EditDetailsRequest";
 import {
   RegisterStudentType,
   RegisterStaffType,
@@ -53,15 +54,28 @@ export const registerStudent = async (
 
   const origin = process.env.CLIENT_URL || "http://localhost:5173";
 
-  await sendVerificationEmail({
-    name: student.fullName,
-    email: student.email as string,
-    verificationToken,
-    origin,
-  });
+  try {
+    await sendVerificationEmail({
+      name: student.fullName,
+      email: student.email as string,
+      verificationToken,
+      origin,
+      purpose: "User Registration",
+    });
+  } catch (error: unknown) {
+    student.email = undefined;
+    student.verificationToken = undefined;
+    student.verificationTokenExpirationDate = undefined;
+    student.lastVerificationEmailSent = undefined;
+    await student.save();
+
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "Failed to send verification email. Please try again later.",
+    });
+  }
 
   res.status(StatusCodes.CREATED).json({
-    msg: "Student created successfully. Please verify your email.",
+    msg: "Verification email sent to your new email address",
   });
 };
 
@@ -190,12 +204,25 @@ export const resendVerificationEmail = async (
 
   const origin = process.env.CLIENT_URL || "http://localhost:5173";
 
-  await sendVerificationEmail({
-    name: user.fullName,
-    email: user.email as string,
-    verificationToken,
-    origin,
-  });
+  try {
+    await sendVerificationEmail({
+      name: user.fullName,
+      email: user.email as string,
+      verificationToken,
+      origin,
+      purpose: "User Registration",
+    });
+  } catch (error: unknown) {
+    user.email = undefined;
+    user.verificationToken = undefined;
+    user.verificationTokenExpirationDate = undefined;
+    user.lastVerificationEmailSent = undefined;
+    await user.save();
+
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "Failed to send verification email. Please try again later.",
+    });
+  }
 
   res.status(StatusCodes.OK).json({
     msg: "If this email is registered, a new verification link has been sent.",
@@ -220,6 +247,17 @@ export const loginUser = async (
     return res
       .status(StatusCodes.UNAUTHORIZED)
       .json({ msg: "Invalid credentials" });
+  }
+
+  const pendingRequest = await EditDetailsRequest.findOne({
+    requestedBy: user._id,
+    status: "pending",
+  });
+
+  if (pendingRequest) {
+    return res.status(StatusCodes.FORBIDDEN).json({
+      msg: "Your details correction request is still under review. Please wait for admin approval.",
+    });
   }
 
   if (user.isDeleted) {
@@ -346,12 +384,23 @@ export const forgotPassword = async (
   // console.log("RAW TOKEN FOR POSTMAN:", resetPasswordToken);
   const origin = process.env.CLIENT_URL || "http://localhost:5173";
 
-  await sendResetPasswordEmail({
-    name: user.fullName,
-    email: user.email as string,
-    resetPasswordToken,
-    origin,
-  });
+  try {
+    await sendResetPasswordEmail({
+      name: user.fullName,
+      email: user.email as string,
+      resetPasswordToken,
+      origin,
+    });
+  } catch (error: unknown) {
+    user.resetPasswordToken = undefined;
+    user.resetPasswordTokenExpirationDate = undefined;
+    user.lastPasswordResetRequest = undefined;
+    await user.save();
+
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "Failed to send reset password email. Please try again later.",
+    });
+  }
 
   user.resetPasswordToken = hashPasswordToken(resetPasswordToken);
   user.resetPasswordTokenExpirationDate = new Date(Date.now() + 60 * 60 * 1000);

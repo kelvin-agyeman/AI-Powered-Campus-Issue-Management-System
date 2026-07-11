@@ -172,11 +172,6 @@ export const registerAdminSchema = z.object({
     .min(3, { error: "Name must be at least 3 characters long" })
     .max(50, { error: "Name cannot exceed 50 characters" }),
 
-  email: z
-    .email({ error: "Please provide a valid email address" })
-    .trim()
-    .toLowerCase(),
-
   institutionId: z
     .string()
     .trim()

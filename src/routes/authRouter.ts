@@ -57,7 +57,7 @@ router
   );
 
 router
-  .route("/register/student")
+  .route("/register")
   .post(apiLimiter, validate(registerStudentSchema), registerStudent);
 
 router.route("/login").post(apiLimiter, validate(loginUserSchema), loginUser);

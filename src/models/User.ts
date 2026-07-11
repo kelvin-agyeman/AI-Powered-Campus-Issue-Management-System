@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import { KNUST_DEPARTMENTS } from "../utils/departments";
-import { maxLength, minLength } from "zod";
 
 const UserSchema = new mongoose.Schema(
   {
@@ -61,7 +60,9 @@ const UserSchema = new mongoose.Schema(
       select: false, // Prevents accidental leakage
     },
 
-    verificationTokenExpirationDate: Date,
+    verificationTokenExpirationDate: {
+      type: Date,
+    },
 
     resetPasswordToken: {
       type: String,
@@ -119,6 +120,21 @@ const UserSchema = new mongoose.Schema(
     isDeleted: {
       type: Boolean,
       default: false,
+    },
+
+    newEmail: {
+      type: String,
+      lowercase: true,
+      trim: true,
+    },
+
+    newVerificationToken: {
+      type: String,
+      select: false,
+    },
+
+    newVerificationTokenExpirationDate: {
+      type: Date,
     },
   },
   { timestamps: true },

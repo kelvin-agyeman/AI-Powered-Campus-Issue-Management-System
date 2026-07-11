@@ -7,7 +7,16 @@ import notFound from "./middleware/notFound";
 import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware";
 import connectDB from "./db/connectDB";
 import authRouter from "./routes/authRouter";
+import userRouter from "./routes/userRouter";
 import cookieParser from "cookie-parser";
+import { authenticateUser } from "./middleware/authMiddleware";
+import cloudinary from "cloudinary";
+
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
@@ -16,8 +25,10 @@ if (process.env.NODE_ENV === "development") {
 app.use(express.json());
 app.use(helmet());
 app.use(cookieParser(process.env.JWT_SECRET));
+app.set("trust proxy", 1);
 
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/user", authenticateUser, userRouter);
 
 app.use(notFound);
 app.use(errorHandlerMiddleware);

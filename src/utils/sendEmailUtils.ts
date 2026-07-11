@@ -6,11 +6,13 @@ export const sendVerificationEmail = async ({
   email,
   verificationToken,
   origin,
+  purpose,
 }: {
   name: string;
   email: string;
   verificationToken: string;
   origin: string;
+  purpose: string;
 }) => {
   const verifyEmail = `${origin}/student/verify-email?token=${verificationToken}&email=${email}`;
 
@@ -19,7 +21,7 @@ export const sendVerificationEmail = async ({
 
   return sendEmail({
     to: email,
-    subject: "Email Confirmation",
+    subject: `Email Confirmation for ${purpose}`,
     html: `<h4> Hello, ${name}</h4>
     ${message}
     `,
