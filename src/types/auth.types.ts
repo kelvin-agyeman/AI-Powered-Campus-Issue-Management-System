@@ -1,4 +1,4 @@
-import { KNUST_DEPARTMENTS } from "../utils/departments";
+import { KNUST_DEPARTMENTS } from "../utils/constants";
 
 export type RegisterStudentType = {
   fullName: string;

@@ -330,3 +330,28 @@ export const sendEditDetailsRequest = async (
     editDetailsRequest,
   });
 };
+
+export const deleteAvatar = async (req: Request, res: Response) => {
+  const user = await User.findById(req.user!._id);
+
+  if (!user) {
+    return res.status(StatusCodes.UNAUTHORIZED).json({ msg: "User not found" });
+  }
+
+  if (!user.avatarPublicId) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ msg: "No avatar to delete" });
+  }
+
+  await cloudinary.v2.uploader.destroy(user.avatarPublicId);
+
+  user.avatar = undefined;
+  user.avatarPublicId = undefined;
+  await user.save();
+
+  res.status(StatusCodes.OK).json({
+    msg: "Avatar removed successfully",
+    user,
+  });
+};

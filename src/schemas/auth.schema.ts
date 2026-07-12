@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { KNUST_DEPARTMENTS } from "../utils/departments";
+import { KNUST_DEPARTMENTS } from "../utils/constants";
 
 export const registerStudentSchema = z.object({
   fullName: z

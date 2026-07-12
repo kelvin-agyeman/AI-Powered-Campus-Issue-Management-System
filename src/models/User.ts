@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-import { KNUST_DEPARTMENTS } from "../utils/departments";
+import { KNUST_DEPARTMENTS } from "../utils/constants";
 
 const UserSchema = new mongoose.Schema(
   {

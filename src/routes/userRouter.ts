@@ -7,6 +7,7 @@ import {
   verifyUpdatedEmail,
   sendEditDetailsRequest,
   resendVerificationEmail,
+  deleteAvatar,
 } from "../controllers/userController";
 import { authorizePermissions } from "../middleware/authMiddleware";
 import { upload } from "../middleware/multerMiddleware";
@@ -70,5 +71,7 @@ router
     validate(sendEditDetailsRequestSchema),
     sendEditDetailsRequest,
   );
+
+router.route("/delete-avatar").delete(deleteAvatar);
 
 export default router;

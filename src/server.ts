@@ -8,8 +8,12 @@ import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware";
 import connectDB from "./db/connectDB";
 import authRouter from "./routes/authRouter";
 import userRouter from "./routes/userRouter";
+import issueRouter from "./routes/issueRouter";
 import cookieParser from "cookie-parser";
-import { authenticateUser } from "./middleware/authMiddleware";
+import {
+  authenticateUser,
+  authorizePermissions,
+} from "./middleware/authMiddleware";
 import cloudinary from "cloudinary";
 
 cloudinary.v2.config({
@@ -29,6 +33,12 @@ app.set("trust proxy", 1);
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", authenticateUser, userRouter);
+app.use(
+  "/api/v1/issue",
+  authenticateUser,
+  authorizePermissions("student"),
+  issueRouter,
+);
 
 app.use(notFound);
 app.use(errorHandlerMiddleware);

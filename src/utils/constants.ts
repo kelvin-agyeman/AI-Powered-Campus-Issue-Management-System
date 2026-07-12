@@ -42,3 +42,35 @@ export const ASSIGNABLE_DEPARTMENTS = [
   "Works and Physical Development",
   "Other",
 ] as const;
+
+export const PRIORITY_LEVELS = ["low", "medium", "high", "critical"] as const;
+
+export const ISSUE_STATUSES = [
+  "pending_admin_review",
+  "assigned",
+  "in_progress",
+  "resolved",
+  "rejected",
+] as const;
+
+export const ISSUE_CATEGORIES = [
+  "Electricity",
+  "Water Supply",
+  "Roads",
+  "Drainage",
+  "Sanitation",
+  "Security",
+  "Fire",
+  "Buildings",
+  "ICT",
+  "Transport",
+  "Health",
+  "Other",
+] as const;
+
+export const AI_MODELS = [
+  "google/gemma-4-31b-it:free", // Primary
+  "openai/gpt-oss-120b:free", // Fallback 1
+  "google/gemma-4-26b-a4b-it:free", // Fallback 2
+  "openai/gpt-oss-20b:free", // Fallback 3
+] as const;
