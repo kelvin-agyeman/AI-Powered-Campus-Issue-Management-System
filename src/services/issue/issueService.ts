@@ -5,6 +5,7 @@ import {
 } from "../../types/issue.types";
 import { Types } from "mongoose";
 import * as aiService from "../ai/aiService";
+import { detectDuplicate } from "../duplicate/duplicateDetectionService";
 
 export const createIssue = async (inputData: IssueServiceCreateInput) => {
   let issue = await Issue.create({
@@ -18,18 +19,33 @@ export const createIssue = async (inputData: IssueServiceCreateInput) => {
       issue.location,
     );
 
+    const duplicateResult = await detectDuplicate(
+      issue._id,
+      issue.description,
+      issue.location,
+      aiResult.aiRecommendation?.category,
+      aiResult.aiRecommendation?.priority,
+      aiResult.aiRecommendation?.summary,
+    );
+
     issue = (await Issue.findByIdAndUpdate(
       issue._id,
       {
         aiRecommendation: aiResult.aiRecommendation,
         resolutionSupport: aiResult.resolutionSupport,
         aiModel: aiResult.model,
+        duplicateAnalysis: duplicateResult?.duplicateAnalysis || {
+          isDuplicate: false,
+          duplicateScore: 0,
+          reasoning: "No recent issues exist in the database for comparison.",
+          possibleDuplicateOf: null,
+        },
         aiStatus: "completed",
       },
       { returnDocument: "after", runValidators: true },
     )) as any;
   } catch (error) {
-    console.error("AI Analysis failed on creation:", error);
+    console.error("AI/Duplicate Analysis failed on creation:", error);
     issue = (await Issue.findByIdAndUpdate(
       issue._id,
       { aiStatus: "failed" },
@@ -73,18 +89,36 @@ export const updateIssue = async (
         issue.location,
       );
 
+      const duplicateResult = await detectDuplicate(
+        issue._id,
+        issue.description,
+        issue.location,
+        aiResult.aiRecommendation?.category,
+        aiResult.aiRecommendation?.priority,
+        aiResult.aiRecommendation?.summary,
+      );
+
       issue = (await Issue.findByIdAndUpdate(
         issueId,
         {
           aiRecommendation: aiResult.aiRecommendation,
           resolutionSupport: aiResult.resolutionSupport,
           aiModel: aiResult.model,
+          duplicateAnalysis: duplicateResult?.duplicateAnalysis || {
+            isDuplicate: false,
+            duplicateScore: 0,
+            reasoning: "No recent issues exist in the database for comparison.",
+            possibleDuplicateOf: null,
+          },
           aiStatus: "completed",
         },
         { returnDocument: "after" },
       )) as any;
     } catch (error) {
-      console.error("AI Analysis failed during update execution:", error);
+      console.error(
+        "AI/Duplicate Analysis failed during update execution:",
+        error,
+      );
 
       issue = (await Issue.findByIdAndUpdate(
         issueId,

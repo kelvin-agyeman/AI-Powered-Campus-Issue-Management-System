@@ -68,11 +68,6 @@ const IssueSchema = new mongoose.Schema(
         type: String,
         trim: true,
       },
-      duplicateScore: {
-        type: Number,
-        min: 0,
-        max: 100,
-      },
       reasoning: {
         type: String,
         trim: true,
@@ -202,9 +197,28 @@ const IssueSchema = new mongoose.Schema(
       trim: true,
     },
 
-    possibleDuplicateOf: {
-      type: mongoose.Types.ObjectId,
-      ref: "Issue",
+    duplicateAnalysis: {
+      isDuplicate: {
+        type: Boolean,
+        default: false,
+      },
+
+      duplicateScore: {
+        type: Number,
+        min: 0,
+        max: 100,
+        default: 0,
+      },
+
+      reasoning: {
+        type: String,
+        trim: true,
+      },
+
+      possibleDuplicateOf: {
+        type: mongoose.Types.ObjectId,
+        ref: "Issue",
+      },
     },
 
     isDeleted: {
