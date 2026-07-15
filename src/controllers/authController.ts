@@ -1,82 +1,22 @@
 import { Request, Response } from "express";
-import User from "../models/User";
-import Token from "../models/Token";
-import EditDetailsRequest from "../models/EditDetailsRequest";
+import { attachCookiesToResponse } from "../utils/tokenUtils";
 import {
   RegisterStudentType,
   RegisterStaffType,
   LoginUserType,
   ResetPasswordType,
-  DepartmentType,
 } from "../types/auth.types";
+import * as authService from "../services/auth/authService";
 import { StatusCodes } from "http-status-codes";
-import { attachCookiesToResponse } from "../utils/tokenUtils";
-import crypto from "crypto";
-import { comparePassword, hashPasswordToken } from "../utils/passwordUtils";
-import {
-  sendVerificationEmail,
-  sendResetPasswordEmail,
-} from "../utils/sendEmailUtils";
-import { TokenUser, UserRole } from "../types/user.types";
-
-const MAX_LOGIN_ATTEMPTS = 5;
-const LOCK_TIME = 15 * 60 * 1000;
 
 export const registerStudent = async (
   req: Request<{}, {}, RegisterStudentType>,
   res: Response,
 ) => {
-  const { fullName, email, institutionId, password } = req.body;
-
-  const existingUser = await User.findOne({
-    $or: [{ email }, { institutionId }],
-  });
-
-  if (existingUser) {
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      msg: "Student with this email or institution ID already exists",
-    });
-  }
-
-  const verificationToken = crypto.randomBytes(40).toString("hex");
-  // console.log("RAW TOKEN FOR POSTMAN:", verificationToken);
-  const oneDay = 24 * 60 * 60 * 1000;
-
-  const student = await User.create({
-    fullName,
-    email,
-    institutionId,
-    password,
-    role: "student",
-    verificationToken: hashPasswordToken(verificationToken),
-    verificationTokenExpirationDate: new Date(Date.now() + oneDay),
-  });
-
   const origin = process.env.CLIENT_URL || "http://localhost:5173";
+  const result = await authService.registerStudentService(req.body, origin);
 
-  try {
-    await sendVerificationEmail({
-      name: student.fullName,
-      email: student.email as string,
-      verificationToken,
-      origin,
-      purpose: "User Registration",
-    });
-  } catch (error: unknown) {
-    student.email = undefined;
-    student.verificationToken = undefined;
-    student.verificationTokenExpirationDate = undefined;
-    student.lastVerificationEmailSent = undefined;
-    await student.save();
-
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: "Failed to send verification email. Please try again later.",
-    });
-  }
-
-  res.status(StatusCodes.CREATED).json({
-    msg: "Verification email sent to your new email address",
-  });
+  res.status(result.status).json({ msg: result.msg });
 };
 
 // FOR ADMIN ONLY
@@ -84,393 +24,84 @@ export const registerStaff = async (
   req: Request<{}, {}, RegisterStaffType>,
   res: Response,
 ) => {
-  const { fullName, email, institutionId, password, department } = req.body;
+  const result = await authService.registerStaffService(req.body);
 
-  const existingUser = await User.findOne({
-    $or: [{ email }, { institutionId }],
-  });
-
-  if (existingUser) {
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      msg: "Staff already exists",
-    });
+  if (result.status === StatusCodes.CREATED) {
+    return res
+      .status(result.status)
+      .json({ msg: result.msg, staff: result.data });
   }
 
-  const staff = await User.create({
-    fullName,
-    email,
-    institutionId,
-    password,
-    department,
-    role: "staff",
-    emailVerified: true,
-    verifiedAt: new Date(),
-  });
-
-  res.status(StatusCodes.CREATED).json({
-    msg: "Staff created successfully",
-    staff,
-  });
+  res.status(result.status).json({ msg: result.msg });
 };
 
 export const verifyEmail = async (req: Request, res: Response) => {
   const { verificationToken, email } = req.body;
+  const result = await authService.verifyEmailService(email, verificationToken);
 
-  const user = await User.findOne({ email }).select("+verificationToken");
-
-  if (!user) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "Invalid verification request" });
-  }
-
-  if (user.emailVerified) {
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      msg: "Account already verified",
-    });
-  }
-
-  if (
-    !user.verificationTokenExpirationDate ||
-    user.verificationTokenExpirationDate < new Date()
-  ) {
-    user.verificationToken = undefined;
-    user.verificationTokenExpirationDate = undefined;
-    await user.save();
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "Verification token has expired" });
-  }
-
-  if (user.verificationToken !== hashPasswordToken(verificationToken)) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "Invalid verification request" });
-  }
-
-  user.emailVerified = true;
-  user.verifiedAt = new Date();
-  user.verificationToken = undefined;
-  user.verificationTokenExpirationDate = undefined;
-
-  await user.save();
-
-  res.status(StatusCodes.OK).json({ msg: "Email verified successfully" });
+  res.status(result.status).json({ msg: result.msg });
 };
 
 export const resendVerificationEmail = async (
   req: Request<{}, {}, { email: string }>,
   res: Response,
 ) => {
-  const { email } = req.body;
-
-  if (!email) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "Please provide an email" });
-  }
-
-  const user = await User.findOne({ email });
-
-  if (!user) {
-    return res.status(StatusCodes.OK).json({
-      msg: "If this email is registered, a new verification link has been sent.",
-    });
-  }
-
-  if (user.emailVerified) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "Account is already verified" });
-  }
-
-  if (
-    user.lastVerificationEmailSent &&
-    Date.now() - user.lastVerificationEmailSent.getTime() < 60 * 1000
-  ) {
-    return res.status(StatusCodes.TOO_MANY_REQUESTS).json({
-      msg: "Please wait before requesting another verification email.",
-    });
-  }
-
-  const verificationToken = crypto.randomBytes(40).toString("hex");
-  // console.log("RAW TOKEN FOR POSTMAN:", verificationToken);
-  const oneDay = 24 * 60 * 60 * 1000;
-
-  user.verificationToken = hashPasswordToken(verificationToken);
-  user.verificationTokenExpirationDate = new Date(Date.now() + oneDay);
-  user.lastVerificationEmailSent = new Date();
-  await user.save();
-
   const origin = process.env.CLIENT_URL || "http://localhost:5173";
+  const result = await authService.resendVerificationEmailService(
+    req.body.email,
+    origin,
+  );
 
-  try {
-    await sendVerificationEmail({
-      name: user.fullName,
-      email: user.email as string,
-      verificationToken,
-      origin,
-      purpose: "User Registration",
-    });
-  } catch (error: unknown) {
-    user.email = undefined;
-    user.verificationToken = undefined;
-    user.verificationTokenExpirationDate = undefined;
-    user.lastVerificationEmailSent = undefined;
-    await user.save();
-
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: "Failed to send verification email. Please try again later.",
-    });
-  }
-
-  res.status(StatusCodes.OK).json({
-    msg: "If this email is registered, a new verification link has been sent.",
-  });
+  res.status(result.status).json({ msg: result.msg });
 };
 
 export const loginUser = async (
   req: Request<{}, {}, LoginUserType>,
   res: Response,
 ) => {
-  const { institutionId, password } = req.body;
+  const result = await authService.loginUserService(
+    req.body,
+    req.ip || "",
+    req.headers["user-agent"],
+  );
 
-  if (!institutionId || !password) {
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      msg: "Please provide institution ID and password",
+  if (result.cookieData) {
+    attachCookiesToResponse({
+      res,
+      user: result.cookieData.user,
+      refreshToken: result.cookieData.refreshToken,
     });
+
+    return res.status(result.status).json({ user: result.cookieData.user });
   }
 
-  const user = await User.findOne({ institutionId }).select("+password");
-
-  if (!user) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ msg: "Invalid credentials" });
-  }
-
-  const pendingRequest = await EditDetailsRequest.findOne({
-    requestedBy: user._id,
-    status: "pending",
-  });
-
-  if (pendingRequest) {
-    return res.status(StatusCodes.FORBIDDEN).json({
-      msg: "Your details correction request is still under review. Please wait for admin approval.",
-    });
-  }
-
-  if (user.isDeleted) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ msg: "Account does not exist" });
-  }
-
-  if (!user.isActive) {
-    return res
-      .status(StatusCodes.FORBIDDEN)
-      .json({ msg: "Account has been deactivated" });
-  }
-
-  if (user.lockUntil && user.lockUntil < new Date()) {
-    user.failedLoginAttempts = 0;
-    user.lockUntil = undefined;
-    await user.save();
-  }
-
-  if (user.lockUntil && user.lockUntil > new Date()) {
-    const minutes = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
-    return res.status(StatusCodes.LOCKED).json({
-      msg: `Account locked. Try again in ${minutes} minutes.`,
-    });
-  }
-
-  const isPasswordCorrect = await comparePassword(password, user.password);
-
-  if (!isPasswordCorrect) {
-    user.failedLoginAttempts += 1;
-
-    if (user.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
-      user.lockUntil = new Date(Date.now() + LOCK_TIME);
-    }
-
-    await user.save();
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ msg: "Invalid credentials" });
-  }
-
-  if (!user.emailVerified) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ msg: "Please verify your email" });
-  }
-
-  user.failedLoginAttempts = 0;
-  user.lockUntil = undefined;
-  user.lastLogin = new Date();
-  await user.save();
-
-  const tokenUser: TokenUser = {
-    _id: user._id,
-    fullName: user.fullName,
-    role: user.role as UserRole,
-  };
-
-  if (user.role === "staff" && user.department) {
-    tokenUser.department = user.department as DepartmentType;
-  }
-
-  let refreshToken = "";
-  const existingToken = await Token.findOne({ user: user._id });
-
-  if (existingToken) {
-    if (!existingToken.isValid) {
-      return res
-        .status(StatusCodes.UNAUTHORIZED)
-        .json({ msg: "Invalid credentials" });
-    }
-
-    refreshToken = existingToken.refreshToken;
-    attachCookiesToResponse({ res, user: tokenUser, refreshToken });
-
-    return res.status(StatusCodes.OK).json({ user: tokenUser });
-  }
-
-  refreshToken = crypto.randomBytes(40).toString("hex");
-
-  await Token.create({
-    refreshToken,
-    ip: req.ip,
-    userAgent: req.headers["user-agent"],
-    user: user._id,
-  });
-
-  attachCookiesToResponse({ res, user: tokenUser, refreshToken });
-
-  res.status(StatusCodes.OK).json({ user: tokenUser });
+  res.status(result.status).json({ msg: result.msg });
 };
 
 export const forgotPassword = async (
   req: Request<{}, {}, { email: string }>,
   res: Response,
 ) => {
-  const { email } = req.body;
-
-  if (!email) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "Please provide email" });
-  }
-
-  const user = await User.findOne({ email });
-
-  if (!user || !user.isActive || user.isDeleted) {
-    return res
-      .status(StatusCodes.OK)
-      .json({ msg: "Please check your email for the reset link." });
-  }
-
-  if (
-    user.lastPasswordResetRequest &&
-    Date.now() - user.lastPasswordResetRequest.getTime() < 60 * 1000
-  ) {
-    return res.status(StatusCodes.TOO_MANY_REQUESTS).json({
-      msg: "Please wait before requesting another reset email.",
-    });
-  }
-
-  const resetPasswordToken = crypto.randomBytes(70).toString("hex");
-  // console.log("RAW TOKEN FOR POSTMAN:", resetPasswordToken);
   const origin = process.env.CLIENT_URL || "http://localhost:5173";
+  const result = await authService.forgotPasswordService(
+    req.body.email,
+    origin,
+  );
 
-  try {
-    await sendResetPasswordEmail({
-      name: user.fullName,
-      email: user.email as string,
-      resetPasswordToken,
-      origin,
-    });
-  } catch (error: unknown) {
-    user.resetPasswordToken = undefined;
-    user.resetPasswordTokenExpirationDate = undefined;
-    user.lastPasswordResetRequest = undefined;
-    await user.save();
-
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: "Failed to send reset password email. Please try again later.",
-    });
-  }
-
-  user.resetPasswordToken = hashPasswordToken(resetPasswordToken);
-  user.resetPasswordTokenExpirationDate = new Date(Date.now() + 60 * 60 * 1000);
-  user.lastPasswordResetRequest = new Date();
-  await user.save();
-
-  res
-    .status(StatusCodes.OK)
-    .json({ msg: "Please check your email for the reset link." });
+  res.status(result.status).json({ msg: result.msg });
 };
 
 export const resetPassword = async (
   req: Request<{}, {}, ResetPasswordType>,
   res: Response,
 ) => {
-  const { resetPasswordToken, email, password } = req.body;
+  const result = await authService.resetPasswordService(req.body);
 
-  if (!resetPasswordToken || !email || !password) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "Please provide all required fields" });
-  }
-
-  const user = await User.findOne({ email }).select("+resetPasswordToken");
-
-  if (!user) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ msg: "User does not exist" });
-  }
-
-  if (!user.resetPasswordToken || !user.resetPasswordTokenExpirationDate) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "No password reset request found" });
-  }
-
-  const currentDate = new Date();
-
-  if (user.resetPasswordTokenExpirationDate < currentDate) {
-    user.resetPasswordToken = undefined;
-    user.resetPasswordTokenExpirationDate = undefined;
-    await user.save();
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "Reset password token has expired" });
-  }
-
-  if (user.resetPasswordToken !== hashPasswordToken(resetPasswordToken)) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "Invalid reset token" });
-  }
-
-  user.password = password;
-  user.passwordChangedAt = currentDate;
-  user.resetPasswordToken = undefined;
-  user.resetPasswordTokenExpirationDate = undefined;
-  user.failedLoginAttempts = 0;
-  user.lockUntil = undefined;
-
-  await user.save();
-
-  res.status(StatusCodes.OK).json({ msg: "Password reset successfully" });
+  res.status(result.status).json({ msg: result.msg });
 };
 
 export const logoutUser = async (req: Request, res: Response) => {
-  await Token.deleteMany({
-    user: req.user!._id,
-  });
+  await authService.logoutUserService(req.user!._id.toString());
 
   res.cookie("accessToken", "logout", {
     httpOnly: true,
@@ -486,29 +117,13 @@ export const logoutUser = async (req: Request, res: Response) => {
 };
 
 export const registerAdmin = async (req: Request, res: Response) => {
-  const { fullName, institutionId, password } = req.body;
+  const result = await authService.registerAdminService(req.body);
 
-  const existingUser = await User.findOne({
-    institutionId,
-  });
-
-  if (existingUser) {
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      msg: "Admin already exists",
-    });
+  if (result.status === StatusCodes.CREATED) {
+    return res
+      .status(result.status)
+      .json({ msg: result.msg, admin: result.data });
   }
 
-  const admin = await User.create({
-    fullName,
-    institutionId,
-    password,
-    role: "admin",
-    emailVerified: true,
-    verifiedAt: new Date(),
-  });
-
-  res.status(StatusCodes.CREATED).json({
-    msg: "Admin created successfully",
-    admin,
-  });
+  res.status(result.status).json({ msg: result.msg });
 };

@@ -131,7 +131,7 @@ export const updateIssue = async (
   return issue;
 };
 
-export const findIssueById = async (issueId: string) => {
+export const findIssueById = async (issueId: string | string[]) => {
   return await Issue.findOne({ _id: issueId, isDeleted: false })
     .populate("reportedBy", "fullName institutionId")
     .populate("assignedDepartment")
@@ -145,7 +145,7 @@ export const findIssuesByStudent = async (studentId: Types.ObjectId) => {
 };
 
 export const softDeleteIssue = async (
-  issueId: string,
+  issueId: string | string[],
   studentId: Types.ObjectId,
 ) => {
   return await Issue.findOneAndUpdate(
@@ -156,7 +156,7 @@ export const softDeleteIssue = async (
 };
 
 export const restoreIssue = async (
-  issueId: string,
+  issueId: string | string[],
   studentId: Types.ObjectId,
 ) => {
   return await Issue.findOneAndUpdate(

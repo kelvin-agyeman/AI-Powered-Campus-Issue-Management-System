@@ -1,44 +1,26 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import * as issueService from "../services/issue/issueService";
+import * as fileUploadService from "../services/fileUpload/fileUploadService";
 import {
   CreateIssueType,
   UpdateIssueType,
   IssueImageType,
 } from "../types/issue.types";
-import { formatImage } from "../middleware/multerMiddleware";
-import cloudinary from "cloudinary";
 import { Types } from "mongoose";
+
+const ISSUES_FOLDER = "campus-issue-management-system-issue-images";
 
 export const createIssue = async (
   req: Request<{}, {}, CreateIssueType>,
   res: Response,
 ) => {
-  const images: IssueImageType[] = [];
+  const files = req.files || req.file;
 
-  if (req.files) {
-    const filesArray = Array.isArray(req.files)
-      ? req.files
-      : Object.values(req.files).flat();
-
-    for (const file of filesArray) {
-      const formattedFile = formatImage(file);
-      if (formattedFile) {
-        const response = await cloudinary.v2.uploader.upload(formattedFile, {
-          folder: "campus-issue-management-system-issue-images",
-        });
-        images.push({ url: response.secure_url, publicId: response.public_id });
-      }
-    }
-  } else if (req.file) {
-    const formattedFile = formatImage(req.file);
-    if (formattedFile) {
-      const response = await cloudinary.v2.uploader.upload(formattedFile, {
-        folder: "campus-issue-management-system-issue-images",
-      });
-      images.push({ url: response.secure_url, publicId: response.public_id });
-    }
-  }
+  const images: IssueImageType[] = await fileUploadService.uploadMultipleFiles(
+    files,
+    ISSUES_FOLDER,
+  );
 
   const studentId = new Types.ObjectId(req.user!._id);
 
@@ -92,35 +74,21 @@ export const updateIssue = async (
   }
 
   const updateData: UpdateIssueType = { ...req.body };
+  const files = req.files || req.file;
 
-  if (req.files || req.file) {
-    const newImages: IssueImageType[] = [];
-    const filesArray = req.files
-      ? Array.isArray(req.files)
-        ? req.files
-        : Object.values(req.files).flat()
-      : req.file
-        ? [req.file]
-        : [];
+  if (files) {
+    const newImages = await fileUploadService.uploadMultipleFiles(
+      files,
+      ISSUES_FOLDER,
+    );
 
-    if (filesArray.length > 0) {
-      for (const file of filesArray) {
-        const formattedFile = formatImage(file);
-        if (formattedFile) {
-          const response = await cloudinary.v2.uploader.upload(formattedFile, {
-            folder: "campus-issue-management-system-issue-images",
-          });
-          newImages.push({
-            url: response.secure_url,
-            publicId: response.public_id,
-          });
-        }
-      }
+    if (newImages.length > 0) {
+      const oldPublicIds = existingIssue.images
+        .map((img) => img.publicId)
+        .filter((id): id is string => !!id);
 
-      for (const oldImage of existingIssue.images) {
-        if (oldImage.publicId) {
-          await cloudinary.v2.uploader.destroy(oldImage.publicId);
-        }
+      if (oldPublicIds.length > 0) {
+        await fileUploadService.deleteMultipleCloudinaryImages(oldPublicIds);
       }
 
       updateData.images = newImages;
