@@ -1,5 +1,5 @@
 import { createLLM } from "./llm";
-import { aiAnalysisSchema, AIAnalysisOutput } from "../../schemas/ai.schema";
+import { aiAnalysisSchema, AIAnalysisOutput } from "../../validators/ai.validator";
 import { buildIssueAnalysisPrompt } from "./promptBuilder";
 import {
   ASSIGNABLE_DEPARTMENTS,

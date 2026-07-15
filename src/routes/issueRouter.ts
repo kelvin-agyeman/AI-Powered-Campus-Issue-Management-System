@@ -2,7 +2,7 @@ import { Router } from "express";
 const router = Router();
 import validate from "../middleware/validationMiddleware";
 import { upload } from "../middleware/multerMiddleware";
-import { createIssueSchema, updateIssueSchema } from "../schemas/issue.schema";
+import { createIssueSchema, updateIssueSchema } from "../validators/issue.validator";
 import {
   createIssue,
   getSingleIssue,

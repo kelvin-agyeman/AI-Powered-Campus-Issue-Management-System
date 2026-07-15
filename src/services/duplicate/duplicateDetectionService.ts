@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Issue from "../../models/Issue";
 import { createLLM } from "../ai/llm";
-import { duplicateAnalysisSchema } from "../../schemas/duplicate.schema";
+import { duplicateAnalysisSchema } from "../../validators/duplicate.validator";
 import { buildDuplicateDetectionPrompt } from "./duplicatePromptBuilder";
 import { AI_MODELS } from "../../utils/constants";
 

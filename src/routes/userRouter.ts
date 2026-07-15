@@ -18,7 +18,7 @@ import {
   resendUpdatedEmailVerificationSchema,
   updateEmailSchema,
   sendEditDetailsRequestSchema,
-} from "../schemas/user.schema";
+} from "../validators/user.validator";
 
 const router = Router();
 

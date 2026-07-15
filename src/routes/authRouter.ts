@@ -25,7 +25,7 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
   registerAdminSchema,
-} from "../schemas/auth.schema";
+} from "../validators/auth.validator";
 import rateLimiter from "express-rate-limit";
 
 const apiLimiter = rateLimiter({
