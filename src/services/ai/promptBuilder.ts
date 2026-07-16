@@ -16,7 +16,7 @@ export const buildIssueAnalysisPrompt = () => {
     - Priorities: {allowedPriorities}
 
     ### Guidelines for AI Recommendation:
-    1. Generate a concise summary that will act as the title for this issue.
+    1. 'title': Generate a short, professional title for the issue (maximum 6 words).
     2. Assign the most appropriate category and department from the provided lists.
     3. Assess the priority level based on urgency, potential damage, and impact on students.
     4. Provide a confidence score (0-100) for your choices.

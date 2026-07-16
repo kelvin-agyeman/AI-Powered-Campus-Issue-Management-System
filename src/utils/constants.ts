@@ -47,6 +47,7 @@ export const PRIORITY_LEVELS = ["low", "medium", "high", "critical"] as const;
 
 export const ISSUE_STATUSES = [
   "pending_admin_review",
+  "approved",
   "assigned",
   "in_progress",
   "resolved",
@@ -74,3 +75,16 @@ export const AI_MODELS = [
   "google/gemma-4-26b-a4b-it:free", // Fallback 2
   "openai/gpt-oss-20b:free", // Fallback 3
 ] as const;
+
+export const NOTIFICATION_TYPES = {
+  ISSUE_CREATED: "ISSUE_CREATED",
+  ISSUE_APPROVED: "ISSUE_APPROVED",
+  ISSUE_REJECTED: "ISSUE_REJECTED",
+  ISSUE_ASSIGNED: "ISSUE_ASSIGNED",
+  ISSUE_IN_PROGRESS: "ISSUE_IN_PROGRESS",
+  ISSUE_RESOLVED: "ISSUE_RESOLVED",
+  ISSUE_UPDATED: "ISSUE_UPDATED",
+  ISSUE_DUPLICATE: "ISSUE_DUPLICATE",
+  ACCOUNT_APPROVED: "ACCOUNT_APPROVED",
+  ACCOUNT_REJECTED: "ACCOUNT_REJECTED",
+} as const;

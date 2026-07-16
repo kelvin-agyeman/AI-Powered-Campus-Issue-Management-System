@@ -2,6 +2,11 @@ import { z } from "zod";
 
 export const aiAnalysisSchema = z.object({
   aiRecommendation: z.object({
+    title: z
+      .string()
+      .describe(
+        "A short, professional title summarizing the issue (maximum 6 words)",
+      ),
     category: z
       .string()
       .describe(

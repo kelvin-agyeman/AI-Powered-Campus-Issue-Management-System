@@ -9,6 +9,7 @@ import connectDB from "./db/connectDB";
 import authRouter from "./routes/authRouter";
 import userRouter from "./routes/userRouter";
 import issueRouter from "./routes/issueRouter";
+import notificationRouter from "./routes/notificationRouter";
 import cookieParser from "cookie-parser";
 import {
   authenticateUser,
@@ -39,6 +40,7 @@ app.use(
   authorizePermissions("student"),
   issueRouter,
 );
+app.use("/api/v1/notifications", authenticateUser, notificationRouter);
 
 app.use(notFound);
 app.use(errorHandlerMiddleware);

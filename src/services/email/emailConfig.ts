@@ -1,6 +1,12 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
 
 export type SendEmailPayload = {
   to: string;
@@ -14,20 +20,15 @@ export const sendEmail = async ({
   html,
 }: SendEmailPayload): Promise<unknown> => {
   try {
-    const { data, error } = await resend.emails.send({
-      from: "Campus Issue Management System <onboarding@resend.dev>",
-      to: [to],
+    const info = await transporter.sendMail({
+      from: `"Campus Issue Management System" <${process.env.GMAIL_USER}>`,
+      to,
       subject,
       html,
     });
 
-    if (error) {
-      console.error("Failed to send email:", error);
-      return null;
-    }
-
-    console.log("Email sent successfully:", data);
-    return data;
+    console.log("Email sent successfully! Message ID:", info.messageId);
+    return info;
   } catch (error) {
     console.error("Email configuration exception:", error);
     return null;

@@ -64,6 +64,10 @@ const IssueSchema = new mongoose.Schema(
         min: 0,
         max: 100,
       },
+      title: {
+        type: String,
+        trim: true,
+      },
       summary: {
         type: String,
         trim: true,
