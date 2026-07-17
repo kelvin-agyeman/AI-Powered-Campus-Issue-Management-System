@@ -2,11 +2,8 @@ import { Types } from "mongoose";
 import Issue from "../../models/Issue";
 import User from "../../models/User";
 import * as notificationService from "../notification/notificationService";
-import {
-  AssignStaffType,
-  FilterIssuesQuery,
-  ModifyIssueType,
-} from "../../types/admin.types";
+import { FilterIssuesQuery, ModifyIssueType } from "../../types/admin.types";
+import { KNUST_DEPARTMENTS } from "../../types/admin.types";
 
 export const getPendingIssues = async () => {
   return Issue.find({
@@ -56,7 +53,6 @@ export const getAllIssues = async (filters: FilterIssuesQuery) => {
 
   if (filters.date) {
     const start = new Date(filters.date);
-
     const end = new Date(filters.date);
     end.setDate(end.getDate() + 1);
 
@@ -99,9 +95,9 @@ export const approveIssue = async (
   issue.reviewedBy = adminId;
   issue.reviewedAt = new Date();
 
-  issue.category = issue.aiRecommendation?.category;
-  issue.priority = issue.aiRecommendation?.priority;
-  issue.assignedDepartment = issue.aiRecommendation?.department;
+  issue.category = issue.aiRecommendation?.category as any;
+  issue.priority = issue.aiRecommendation?.priority as any;
+  issue.assignedDepartment = issue.aiRecommendation?.department as any;
 
   await issue.save();
 
@@ -164,7 +160,7 @@ export const rejectIssue = async (
 export const assignStaff = async (
   issueId: string,
   adminId: Types.ObjectId,
-  staffId: AssignStaffType["staffId"],
+  staffId: Types.ObjectId, // Bring this back
 ) => {
   const issue = await Issue.findById(issueId).populate("reportedBy");
 
@@ -172,10 +168,18 @@ export const assignStaff = async (
     throw new Error("Issue not found");
   }
 
+  if (issue.adminDecision === "rejected") {
+    throw new Error("Cannot assign a rejected issue. Please approve it first.");
+  }
+
   const staff = await User.findById(staffId);
 
-  if (!staff) {
-    throw new Error("Staff not found");
+  if (!staff || staff.role !== "staff") {
+    throw new Error("Valid staff member not found");
+  }
+
+  if (issue.adminDecision !== "approved") {
+    issue.adminDecision = "approved";
   }
 
   issue.status = "assigned";
@@ -192,4 +196,35 @@ export const assignStaff = async (
   );
 
   return issue;
+};
+
+export const getIssueDuplicates = async (issueId: string) => {
+  const issue = await Issue.findById(issueId).populate(
+    "duplicateAnalysis.possibleDuplicateOf",
+    "category priority status createdAt description",
+  );
+
+  if (!issue) {
+    throw new Error("Issue not found");
+  }
+
+  return {
+    possibleDuplicateOf: issue.duplicateAnalysis?.possibleDuplicateOf || null,
+    duplicateScore: issue.duplicateAnalysis?.duplicateScore || null,
+    reasoning: issue.duplicateAnalysis?.reasoning || null,
+  };
+};
+
+export const getStaffByDepartment = async (department: KNUST_DEPARTMENTS) => {
+  if (!department) {
+    throw new Error("Department is required");
+  }
+
+  const staffMembers = await User.find({
+    role: "staff",
+    department: department,
+    isActive: true,
+  }).select("fullName email _id");
+
+  return staffMembers;
 };

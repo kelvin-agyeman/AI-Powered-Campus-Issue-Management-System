@@ -11,7 +11,7 @@ const USER_AVATARS_FOLDER = "campus-issue-management-system-user-images";
 
 export type ServiceResponse = {
   status: number;
-  msg?: string;
+  message?: string;
   data?: any;
   logoutRequired?: boolean;
 };
@@ -22,7 +22,7 @@ export const getCurrentUserService = async (
   const user = await User.findById(userId).select("-password");
 
   if (!user) {
-    return { status: StatusCodes.UNAUTHORIZED, msg: "User not found" };
+    return { status: StatusCodes.UNAUTHORIZED, message: "User not found" };
   }
 
   return { status: StatusCodes.OK, data: user };
@@ -36,7 +36,7 @@ export const updateUserService = async (
   const user = await User.findById(userId);
 
   if (!user) {
-    return { status: StatusCodes.UNAUTHORIZED, msg: "User not found" };
+    return { status: StatusCodes.UNAUTHORIZED, message: "User not found" };
   }
 
   const updateData: {
@@ -70,7 +70,7 @@ export const updateUserService = async (
 
   return {
     status: StatusCodes.OK,
-    msg: "user updated successfully",
+    message: "user updated successfully",
     data: updatedUser,
   };
 };
@@ -83,13 +83,13 @@ export const updateEmailService = async (
   const user = await User.findById(userId);
 
   if (!user) {
-    return { status: StatusCodes.NOT_FOUND, msg: "User not found" };
+    return { status: StatusCodes.NOT_FOUND, message: "User not found" };
   }
 
   if (user.email === newEmail) {
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "Please provide a different email address",
+      message: "Please provide a different email address",
     };
   }
 
@@ -100,7 +100,7 @@ export const updateEmailService = async (
   if (existingUser) {
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "This email is currently unavailable",
+      message: "This email is currently unavailable",
     };
   }
 
@@ -110,7 +110,7 @@ export const updateEmailService = async (
   ) {
     return {
       status: StatusCodes.TOO_MANY_REQUESTS,
-      msg: "Please wait before requesting another verification email.",
+      message: "Please wait before requesting another verification email.",
     };
   }
 
@@ -141,13 +141,13 @@ export const updateEmailService = async (
 
     return {
       status: StatusCodes.INTERNAL_SERVER_ERROR,
-      msg: "Failed to send verification email. Please try again later.",
+      message: "Failed to send verification email. Please try again later.",
     };
   }
 
   return {
     status: StatusCodes.OK,
-    msg: "Verification email sent to your new email address.",
+    message: "Verification email sent to your new email address.",
   };
 };
 
@@ -156,7 +156,7 @@ export const resendNewEmailVerificationService = async (
   origin: string,
 ): Promise<ServiceResponse> => {
   if (!newEmail) {
-    return { status: StatusCodes.BAD_REQUEST, msg: "Please provide an email" };
+    return { status: StatusCodes.BAD_REQUEST, message: "Please provide an email" };
   }
 
   const user = await User.findOne({ newEmail });
@@ -164,14 +164,14 @@ export const resendNewEmailVerificationService = async (
   if (!user) {
     return {
       status: StatusCodes.OK,
-      msg: "If this email is registered, a new verification link has been sent.",
+      message: "If this email is registered, a new verification link has been sent.",
     };
   }
 
   if (user.emailVerified && !user.newEmail) {
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "Account is already verified",
+      message: "Account is already verified",
     };
   }
 
@@ -181,7 +181,7 @@ export const resendNewEmailVerificationService = async (
   ) {
     return {
       status: StatusCodes.TOO_MANY_REQUESTS,
-      msg: "Please wait before requesting another verification email.",
+      message: "Please wait before requesting another verification email.",
     };
   }
 
@@ -210,13 +210,13 @@ export const resendNewEmailVerificationService = async (
 
     return {
       status: StatusCodes.INTERNAL_SERVER_ERROR,
-      msg: "Failed to send verification email. Please try again later.",
+      message: "Failed to send verification email. Please try again later.",
     };
   }
 
   return {
     status: StatusCodes.OK,
-    msg: "If this email is registered, a new verification link has been sent.",
+    message: "If this email is registered, a new verification link has been sent.",
   };
 };
 
@@ -235,7 +235,7 @@ export const verifyUpdatedEmailService = async (
   ) {
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "Invalid verification request",
+      message: "Invalid verification request",
     };
   }
 
@@ -248,14 +248,14 @@ export const verifyUpdatedEmailService = async (
 
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "Verification token has expired",
+      message: "Verification token has expired",
     };
   }
 
   if (user.newVerificationToken !== hashPasswordToken(newVerificationToken)) {
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "Invalid verification request",
+      message: "Invalid verification request",
     };
   }
 
@@ -269,7 +269,7 @@ export const verifyUpdatedEmailService = async (
 
   await user.save();
 
-  return { status: StatusCodes.OK, msg: "Email updated successfully" };
+  return { status: StatusCodes.OK, message: "Email updated successfully" };
 };
 
 export const sendEditDetailsRequestService = async (
@@ -284,7 +284,7 @@ export const sendEditDetailsRequestService = async (
   if (studentAlreadyExists) {
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "A student with this student ID already exists.",
+      message: "A student with this student ID already exists.",
     };
   }
 
@@ -298,7 +298,7 @@ export const sendEditDetailsRequestService = async (
 
   return {
     status: StatusCodes.OK,
-    msg: "Request sent successfully. You will be logged out until your request is approved.",
+    message: "Request sent successfully. You will be logged out until your request is approved.",
     data: editDetailsRequest,
     logoutRequired: true,
   };
@@ -310,11 +310,11 @@ export const deleteAvatarService = async (
   const user = await User.findById(userId);
 
   if (!user) {
-    return { status: StatusCodes.UNAUTHORIZED, msg: "User not found" };
+    return { status: StatusCodes.UNAUTHORIZED, message: "User not found" };
   }
 
   if (!user.avatarPublicId) {
-    return { status: StatusCodes.BAD_REQUEST, msg: "No avatar to delete" };
+    return { status: StatusCodes.BAD_REQUEST, message: "No avatar to delete" };
   }
 
   await fileUploadService.deleteCloudinaryImage(user.avatarPublicId);
@@ -325,7 +325,7 @@ export const deleteAvatarService = async (
 
   return {
     status: StatusCodes.OK,
-    msg: "Avatar removed successfully",
+    message: "Avatar removed successfully",
     data: user,
   };
 };

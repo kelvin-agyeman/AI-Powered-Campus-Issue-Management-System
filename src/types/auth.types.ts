@@ -9,10 +9,6 @@ export type RegisterStudentType = {
 
 export type DepartmentType = (typeof KNUST_DEPARTMENTS)[number];
 
-export type RegisterStaffType = RegisterStudentType & {
-  department: DepartmentType;
-};
-
 export type LoginUserType = { institutionId: string; password: string };
 
 export type ResetPasswordType = {

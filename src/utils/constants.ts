@@ -70,10 +70,10 @@ export const ISSUE_CATEGORIES = [
 ] as const;
 
 export const AI_MODELS = [
-  "google/gemma-4-31b-it:free", // Primary
-  "openai/gpt-oss-120b:free", // Fallback 1
-  "google/gemma-4-26b-a4b-it:free", // Fallback 2
-  "openai/gpt-oss-20b:free", // Fallback 3
+  "llama-3.3-70b-versatile", // Primary
+  "openai/gpt-oss-120b", // Fallback 1
+  "llama-3.1-8b-instant", // Fallback 2
+  "meta-llama/llama-4-scout-17b-16e-instruct", // Fallback 3
 ] as const;
 
 export const NOTIFICATION_TYPES = {
@@ -87,4 +87,5 @@ export const NOTIFICATION_TYPES = {
   ISSUE_DUPLICATE: "ISSUE_DUPLICATE",
   ACCOUNT_APPROVED: "ACCOUNT_APPROVED",
   ACCOUNT_REJECTED: "ACCOUNT_REJECTED",
+  SYSTEM_BROADCAST: "SYSTEM_BROADCAST",
 } as const;

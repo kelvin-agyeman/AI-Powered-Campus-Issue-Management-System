@@ -43,7 +43,7 @@ const IssueSchema = new mongoose.Schema(
 
     aiModel: {
       type: String,
-      default: "google/gemma-4-31b-it:free",
+      default: "llama-3.3-70b-versatile",
     },
 
     aiRecommendation: {

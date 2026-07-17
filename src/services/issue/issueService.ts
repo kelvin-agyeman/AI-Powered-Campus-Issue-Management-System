@@ -41,6 +41,9 @@ export const createIssue = async (inputData: IssueServiceCreateInput) => {
           possibleDuplicateOf: null,
         },
         aiStatus: "completed",
+        assignedDepartment: aiResult.aiRecommendation?.department,
+        category: aiResult.aiRecommendation?.category,
+        priority: aiResult.aiRecommendation?.priority,
       },
       { returnDocument: "after", runValidators: true },
     )) as any;

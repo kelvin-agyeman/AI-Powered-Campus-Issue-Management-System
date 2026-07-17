@@ -31,7 +31,7 @@ export const createIssue = async (
   });
 
   res.status(StatusCodes.CREATED).json({
-    msg: "Issue reported successfully",
+    message: "Issue reported successfully",
     issue,
   });
 };
@@ -41,7 +41,7 @@ export const getSingleIssue = async (req: Request, res: Response) => {
   const issue = await issueService.findIssueById(issueId);
 
   if (!issue) {
-    return res.status(StatusCodes.NOT_FOUND).json({ msg: "Issue not found" });
+    return res.status(StatusCodes.NOT_FOUND).json({ message: "Issue not found" });
   }
 
   res.status(StatusCodes.OK).json({ issue });
@@ -69,7 +69,7 @@ export const updateIssue = async (
     existingIssue.status !== "pending_admin_review"
   ) {
     return res.status(StatusCodes.BAD_REQUEST).json({
-      msg: "Issue not found, or it can no longer be updated because it is under review",
+      message: "Issue not found, or it can no longer be updated because it is under review",
     });
   }
 
@@ -102,7 +102,7 @@ export const updateIssue = async (
   );
 
   res.status(StatusCodes.OK).json({
-    msg: "Issue updated successfully",
+    message: "Issue updated successfully",
     issue: updatedIssue,
   });
 };
@@ -115,11 +115,11 @@ export const deleteIssue = async (req: Request, res: Response) => {
 
   if (!deletedIssue) {
     return res.status(StatusCodes.BAD_REQUEST).json({
-      msg: "Issue not found, or it can no longer be deleted because it is under review",
+      message: "Issue not found, or it can no longer be deleted because it is under review",
     });
   }
 
-  res.status(StatusCodes.OK).json({ msg: "Issue removed successfully" });
+  res.status(StatusCodes.OK).json({ message: "Issue removed successfully" });
 };
 
 export const restoreIssue = async (req: Request, res: Response) => {
@@ -131,11 +131,11 @@ export const restoreIssue = async (req: Request, res: Response) => {
   if (!restoredIssue) {
     return res
       .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "Unable to restore issue" });
+      .json({ message: "Unable to restore issue" });
   }
 
   res.status(StatusCodes.OK).json({
-    msg: "Issue restored successfully",
+    message: "Issue restored successfully",
     issue: restoredIssue,
   });
 };

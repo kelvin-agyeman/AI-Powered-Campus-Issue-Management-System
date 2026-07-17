@@ -11,7 +11,7 @@ export const getCurrentUser = async (req: Request, res: Response) => {
     return res.status(result.status).json({ user: result.data });
   }
 
-  res.status(result.status).json({ msg: result.msg });
+  res.status(result.status).json({ message: result.message });
 };
 
 export const updateUser = async (
@@ -27,10 +27,10 @@ export const updateUser = async (
   if (result.status === StatusCodes.OK) {
     return res
       .status(result.status)
-      .json({ msg: result.msg, user: result.data });
+      .json({ message: result.message, user: result.data });
   }
 
-  res.status(result.status).json({ msg: result.msg });
+  res.status(result.status).json({ message: result.message });
 };
 
 export const updateEmail = async (
@@ -44,7 +44,7 @@ export const updateEmail = async (
     origin,
   );
 
-  res.status(result.status).json({ msg: result.msg });
+  res.status(result.status).json({ message: result.message });
 };
 
 export const resendVerificationEmail = async (
@@ -57,7 +57,7 @@ export const resendVerificationEmail = async (
     origin,
   );
 
-  res.status(result.status).json({ msg: result.msg });
+  res.status(result.status).json({ message: result.message });
 };
 
 export const verifyUpdatedEmail = async (
@@ -70,7 +70,7 @@ export const verifyUpdatedEmail = async (
     newVerificationToken,
   );
 
-  res.status(result.status).json({ msg: result.msg });
+  res.status(result.status).json({ message: result.message });
 };
 
 export const sendEditDetailsRequest = async (
@@ -98,10 +98,10 @@ export const sendEditDetailsRequest = async (
   if (result.status === StatusCodes.OK) {
     return res
       .status(result.status)
-      .json({ msg: result.msg, editDetailsRequest: result.data });
+      .json({ message: result.message, editDetailsRequest: result.data });
   }
 
-  res.status(result.status).json({ msg: result.msg });
+  res.status(result.status).json({ message: result.message });
 };
 
 export const deleteAvatar = async (req: Request, res: Response) => {
@@ -112,8 +112,8 @@ export const deleteAvatar = async (req: Request, res: Response) => {
   if (result.status === StatusCodes.OK) {
     return res
       .status(result.status)
-      .json({ msg: result.msg, user: result.data });
+      .json({ message: result.message, user: result.data });
   }
 
-  res.status(result.status).json({ msg: result.msg });
+  res.status(result.status).json({ message: result.message });
 };

@@ -4,7 +4,6 @@ import { StatusCodes } from "http-status-codes";
 import { Request, Response, NextFunction } from "express";
 import { TokenUser } from "../types/user.types";
 
-// A basic type representing what our JWT payload contains
 type AuthPayload = {
   user: TokenUser;
   refreshToken?: string;

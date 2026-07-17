@@ -2,12 +2,12 @@ import { Request, Response } from "express";
 import { attachCookiesToResponse } from "../utils/tokenUtils";
 import {
   RegisterStudentType,
-  RegisterStaffType,
   LoginUserType,
   ResetPasswordType,
 } from "../types/auth.types";
 import * as authService from "../services/auth/authService";
 import { StatusCodes } from "http-status-codes";
+import User from "../models/User";
 
 export const registerStudent = async (
   req: Request<{}, {}, RegisterStudentType>,
@@ -16,30 +16,14 @@ export const registerStudent = async (
   const origin = process.env.CLIENT_URL || "http://localhost:5173";
   const result = await authService.registerStudentService(req.body, origin);
 
-  res.status(result.status).json({ msg: result.msg });
-};
-
-// FOR ADMIN ONLY
-export const registerStaff = async (
-  req: Request<{}, {}, RegisterStaffType>,
-  res: Response,
-) => {
-  const result = await authService.registerStaffService(req.body);
-
-  if (result.status === StatusCodes.CREATED) {
-    return res
-      .status(result.status)
-      .json({ msg: result.msg, staff: result.data });
-  }
-
-  res.status(result.status).json({ msg: result.msg });
+  res.status(result.status).json({ message: result.message });
 };
 
 export const verifyEmail = async (req: Request, res: Response) => {
   const { verificationToken, email } = req.body;
   const result = await authService.verifyEmailService(email, verificationToken);
 
-  res.status(result.status).json({ msg: result.msg });
+  res.status(result.status).json({ message: result.message });
 };
 
 export const resendVerificationEmail = async (
@@ -52,7 +36,7 @@ export const resendVerificationEmail = async (
     origin,
   );
 
-  res.status(result.status).json({ msg: result.msg });
+  res.status(result.status).json({ message: result.message });
 };
 
 export const loginUser = async (
@@ -75,7 +59,7 @@ export const loginUser = async (
     return res.status(result.status).json({ user: result.cookieData.user });
   }
 
-  res.status(result.status).json({ msg: result.msg });
+  res.status(result.status).json({ message: result.message });
 };
 
 export const forgotPassword = async (
@@ -88,7 +72,7 @@ export const forgotPassword = async (
     origin,
   );
 
-  res.status(result.status).json({ msg: result.msg });
+  res.status(result.status).json({ message: result.message });
 };
 
 export const resetPassword = async (
@@ -97,7 +81,7 @@ export const resetPassword = async (
 ) => {
   const result = await authService.resetPasswordService(req.body);
 
-  res.status(result.status).json({ msg: result.msg });
+  res.status(result.status).json({ message: result.message });
 };
 
 export const logoutUser = async (req: Request, res: Response) => {
@@ -113,17 +97,32 @@ export const logoutUser = async (req: Request, res: Response) => {
     expires: new Date(Date.now()),
   });
 
-  res.status(StatusCodes.OK).json({ msg: "User logged out" });
+  res
+    .status(StatusCodes.OK)
+    .json({ success: true, message: "User logged out" });
 };
 
-export const registerAdmin = async (req: Request, res: Response) => {
-  const result = await authService.registerAdminService(req.body);
+// Only used in postman for super admin creation
+export const createSuperAdmin = async (req: Request, res: Response) => {
+  const { fullName, institutionId, password } = req.body;
 
-  if (result.status === StatusCodes.CREATED) {
-    return res
-      .status(result.status)
-      .json({ msg: result.msg, admin: result.data });
+  const existingUser = await User.findOne({
+    institutionId,
+  });
+  if (existingUser) {
+    throw new Error("User with this Admin ID already exists.");
   }
 
-  res.status(result.status).json({ msg: result.msg });
+  const superAdminUser = await User.create({
+    fullName,
+    institutionId,
+    password,
+    role: "super_admin",
+    emailVerified: true,
+    verifiedAt: new Date(),
+  });
+
+  return res
+    .status(StatusCodes.OK)
+    .json({ message: "User created successfully", superAdminUser });
 };

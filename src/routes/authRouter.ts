@@ -2,30 +2,25 @@ import { Router } from "express";
 const router = Router();
 import {
   registerStudent,
-  registerStaff,
   loginUser,
   logoutUser,
   verifyEmail,
   resendVerificationEmail,
   forgotPassword,
   resetPassword,
-  registerAdmin,
+  createSuperAdmin,
 } from "../controllers/authController";
-import {
-  authenticateUser,
-  authorizePermissions,
-} from "../middleware/authMiddleware";
+import { authenticateUser } from "../middleware/authMiddleware";
 import validate from "../middleware/validationMiddleware";
 import {
   registerStudentSchema,
-  registerStaffSchema,
   verifyEmailSchema,
   resendVerificationEmailSchema,
   loginUserSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
-  registerAdminSchema,
 } from "../validators/auth.validator";
+import { registerAdminSchema } from "../validators/superAdmin.validator";
 import rateLimiter from "express-rate-limit";
 
 const apiLimiter = rateLimiter({
@@ -60,6 +55,10 @@ router
   .route("/register")
   .post(apiLimiter, validate(registerStudentSchema), registerStudent);
 
+router
+  .route("/create-super-admin")
+  .post(validate(registerAdminSchema), createSuperAdmin);
+
 router.route("/login").post(apiLimiter, validate(loginUserSchema), loginUser);
 
 router
@@ -69,19 +68,6 @@ router
 router
   .route("/reset-password")
   .post(apiLimiter, validate(resetPasswordSchema), resetPassword);
-
-router
-  .route("/register/admin")
-  .post(validate(registerAdminSchema), registerAdmin);
-
-router
-  .route("/register/staff")
-  .post(
-    authenticateUser,
-    authorizePermissions("admin"),
-    validate(registerStaffSchema),
-    registerStaff,
-  );
 
 router.route("/logout").delete(authenticateUser, logoutUser);
 

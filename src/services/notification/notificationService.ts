@@ -1,4 +1,5 @@
 import Notification from "../../models/Notification";
+import User from "../../models/User";
 import { NOTIFICATION_TYPES } from "../../utils/constants";
 import * as emailService from "./emailNotificationService";
 
@@ -95,4 +96,35 @@ export const notifyIssueResolved = async (user: any, issue: any) => {
     user.fullName,
     issueTitle,
   );
+};
+
+export const sendSystemBroadcast = async (broadcastData: {
+  title: string;
+  message: string;
+  targetAudience: "all" | "students" | "staff" | "admins";
+}) => {
+  const { title, message, targetAudience } = broadcastData;
+  const query: any = { isActive: true };
+
+  if (targetAudience !== "all") {
+    const roleMap: Record<string, string> = {
+      students: "student",
+      staff: "staff",
+      admins: "admin",
+    };
+    query.role = roleMap[targetAudience];
+  }
+
+  const users = await User.find(query).select("_id");
+
+  if (users.length === 0) return;
+
+  const notifications = users.map((user) => ({
+    recipient: user._id,
+    title,
+    message,
+    type: NOTIFICATION_TYPES.SYSTEM_BROADCAST || "SYSTEM_BROADCAST",
+  }));
+
+  await Notification.insertMany(notifications);
 };

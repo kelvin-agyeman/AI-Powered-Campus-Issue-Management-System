@@ -10,6 +10,8 @@ import authRouter from "./routes/authRouter";
 import userRouter from "./routes/userRouter";
 import issueRouter from "./routes/issueRouter";
 import notificationRouter from "./routes/notificationRouter";
+import adminRouter from "./routes/adminRouter";
+import superAdminRouter from "./routes/superAdminRouter";
 import cookieParser from "cookie-parser";
 import {
   authenticateUser,
@@ -41,6 +43,18 @@ app.use(
   issueRouter,
 );
 app.use("/api/v1/notifications", authenticateUser, notificationRouter);
+app.use(
+  "/api/v1/admin",
+  authenticateUser,
+  authorizePermissions("admin"),
+  adminRouter,
+);
+app.use(
+  "/api/v1/super-admin",
+  authenticateUser,
+  authorizePermissions("super_admin"),
+  superAdminRouter,
+);
 
 app.use(notFound);
 app.use(errorHandlerMiddleware);

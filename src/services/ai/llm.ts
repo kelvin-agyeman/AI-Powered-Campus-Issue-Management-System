@@ -1,21 +1,14 @@
-import { ChatOpenAI } from "@langchain/openai";
+import { ChatGroq } from "@langchain/groq";
 
-if (!process.env.OPENROUTER_API_KEY) {
-  throw new Error("Missing OPENROUTER_API_KEY environment variable");
+if (!process.env.GROQ_API_KEY) {
+  throw new Error("Missing GROQ_API_KEY environment variable");
 }
 
 export const createLLM = (model: string) => {
-  return new ChatOpenAI({
+  return new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY,
     model,
     temperature: 0,
     maxRetries: 2,
-    apiKey: process.env.OPENROUTER_API_KEY,
-    configuration: {
-      baseURL: "https://openrouter.ai/api/v1",
-      defaultHeaders: {
-        "HTTP-Referer": process.env.CLIENT_URL || "http://localhost:5173",
-        "X-Title": "AI-Powered Campus Issue Management System",
-      },
-    },
   });
 };

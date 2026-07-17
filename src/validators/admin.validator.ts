@@ -31,14 +31,14 @@ export const assignStaffSchema = z.object({
   staffId: z.string().trim().min(1, "Staff member is required."),
 });
 
-export const filterIssuesSchema = z.object({
-  status: z.string().optional(),
-  assignedDepartment: z.enum(ASSIGNABLE_DEPARTMENTS).optional(),
-  priority: z.enum(PRIORITY_LEVELS).optional(),
-  category: z.enum(ISSUE_CATEGORIES).optional(),
-  reportedBy: z.string().optional(),
-  assignedStaff: z.string().optional(),
-  aiStatus: z.enum(["pending", "processing", "completed", "failed"]).optional(),
-  adminDecision: z.enum(["approved", "modified", "rejected"]).optional(),
-  date: z.string().optional(),
-});
+// export const filterIssuesSchema = z.object({
+//   status: z.string().optional(),
+//   assignedDepartment: z.enum(ASSIGNABLE_DEPARTMENTS).optional(),
+//   priority: z.enum(PRIORITY_LEVELS).optional(),
+//   category: z.enum(ISSUE_CATEGORIES).optional(),
+//   reportedBy: z.string().optional(),
+//   assignedStaff: z.string().optional(),
+//   aiStatus: z.enum(["pending", "processing", "completed", "failed"]).optional(),
+//   adminDecision: z.enum(["approved", "modified", "rejected"]).optional(),
+//   date: z.string().optional(),
+// });

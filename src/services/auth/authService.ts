@@ -7,7 +7,6 @@ import * as emailService from "../email/emailService";
 import { StatusCodes } from "http-status-codes";
 import {
   RegisterStudentType,
-  RegisterStaffType,
   LoginUserType,
   ResetPasswordType,
   DepartmentType,
@@ -19,7 +18,7 @@ const LOCK_TIME = 15 * 60 * 1000;
 
 export type ServiceResponse = {
   status: number;
-  msg?: string;
+  message?: string;
   data?: any;
   cookieData?: {
     user: TokenUser;
@@ -40,7 +39,7 @@ export const registerStudentService = async (
   if (existingUser) {
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "Student with this email or institution ID already exists",
+      message: "Student with this email or institution ID already exists",
     };
   }
 
@@ -74,47 +73,13 @@ export const registerStudentService = async (
 
     return {
       status: StatusCodes.INTERNAL_SERVER_ERROR,
-      msg: "Failed to send verification email. Please try again later.",
+      message: "Failed to send verification email. Please try again later.",
     };
   }
 
   return {
     status: StatusCodes.CREATED,
-    msg: "Verification email sent to your new email address",
-  };
-};
-
-export const registerStaffService = async (
-  payload: RegisterStaffType,
-): Promise<ServiceResponse> => {
-  const { fullName, email, institutionId, password, department } = payload;
-
-  const existingUser = await User.findOne({
-    $or: [{ email }, { institutionId }],
-  });
-
-  if (existingUser) {
-    return {
-      status: StatusCodes.BAD_REQUEST,
-      msg: "Staff already exists",
-    };
-  }
-
-  const staff = await User.create({
-    fullName,
-    email,
-    institutionId,
-    password,
-    department,
-    role: "staff",
-    emailVerified: true,
-    verifiedAt: new Date(),
-  });
-
-  return {
-    status: StatusCodes.CREATED,
-    msg: "Staff created successfully",
-    data: staff,
+    message: "Verification email sent to your new email address",
   };
 };
 
@@ -127,14 +92,14 @@ export const verifyEmailService = async (
   if (!user) {
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "Invalid verification request",
+      message: "Invalid verification request",
     };
   }
 
   if (user.emailVerified) {
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "Account already verified",
+      message: "Account already verified",
     };
   }
 
@@ -147,14 +112,14 @@ export const verifyEmailService = async (
     await user.save();
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "Verification token has expired",
+      message: "Verification token has expired",
     };
   }
 
   if (user.verificationToken !== hashPasswordToken(verificationToken)) {
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "Invalid verification request",
+      message: "Invalid verification request",
     };
   }
 
@@ -166,7 +131,7 @@ export const verifyEmailService = async (
 
   return {
     status: StatusCodes.OK,
-    msg: "Email verified successfully",
+    message: "Email verified successfully",
   };
 };
 
@@ -175,7 +140,10 @@ export const resendVerificationEmailService = async (
   origin: string,
 ): Promise<ServiceResponse> => {
   if (!email) {
-    return { status: StatusCodes.BAD_REQUEST, msg: "Please provide an email" };
+    return {
+      status: StatusCodes.BAD_REQUEST,
+      message: "Please provide an email",
+    };
   }
 
   const user = await User.findOne({ email });
@@ -183,14 +151,15 @@ export const resendVerificationEmailService = async (
   if (!user) {
     return {
       status: StatusCodes.OK,
-      msg: "If this email is registered, a new verification link has been sent.",
+      message:
+        "If this email is registered, a new verification link has been sent.",
     };
   }
 
   if (user.emailVerified) {
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "Account is already verified",
+      message: "Account is already verified",
     };
   }
 
@@ -200,7 +169,7 @@ export const resendVerificationEmailService = async (
   ) {
     return {
       status: StatusCodes.TOO_MANY_REQUESTS,
-      msg: "Please wait before requesting another verification email.",
+      message: "Please wait before requesting another verification email.",
     };
   }
 
@@ -229,13 +198,14 @@ export const resendVerificationEmailService = async (
 
     return {
       status: StatusCodes.INTERNAL_SERVER_ERROR,
-      msg: "Failed to send verification email. Please try again later.",
+      message: "Failed to send verification email. Please try again later.",
     };
   }
 
   return {
     status: StatusCodes.OK,
-    msg: "If this email is registered, a new verification link has been sent.",
+    message:
+      "If this email is registered, a new verification link has been sent.",
   };
 };
 
@@ -249,14 +219,14 @@ export const loginUserService = async (
   if (!institutionId || !password) {
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "Please provide institution ID and password",
+      message: "Please provide institution ID and password",
     };
   }
 
   const user = await User.findOne({ institutionId }).select("+password");
 
   if (!user) {
-    return { status: StatusCodes.UNAUTHORIZED, msg: "Invalid credentials" };
+    return { status: StatusCodes.UNAUTHORIZED, message: "Invalid credentials" };
   }
 
   const pendingRequest = await EditDetailsRequest.findOne({
@@ -267,18 +237,22 @@ export const loginUserService = async (
   if (pendingRequest) {
     return {
       status: StatusCodes.FORBIDDEN,
-      msg: "Your details correction request is still under review. Please wait for admin approval.",
+      message:
+        "Your details correction request is still under review. Please wait for admin approval.",
     };
   }
 
   if (user.isDeleted) {
-    return { status: StatusCodes.UNAUTHORIZED, msg: "Account does not exist" };
+    return {
+      status: StatusCodes.UNAUTHORIZED,
+      message: "Account does not exist",
+    };
   }
 
   if (!user.isActive) {
     return {
       status: StatusCodes.FORBIDDEN,
-      msg: "Account has been deactivated",
+      message: "Account has been deactivated",
     };
   }
 
@@ -292,7 +266,7 @@ export const loginUserService = async (
     const minutes = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
     return {
       status: StatusCodes.LOCKED,
-      msg: `Account locked. Try again in ${minutes} minutes.`,
+      message: `Account locked. Try again in ${minutes} minutes.`,
     };
   }
 
@@ -304,13 +278,13 @@ export const loginUserService = async (
       user.lockUntil = new Date(Date.now() + LOCK_TIME);
     }
     await user.save();
-    return { status: StatusCodes.UNAUTHORIZED, msg: "Invalid credentials" };
+    return { status: StatusCodes.UNAUTHORIZED, message: "Invalid credentials" };
   }
 
   if (!user.emailVerified) {
     return {
       status: StatusCodes.UNAUTHORIZED,
-      msg: "Please verify your email",
+      message: "Please verify your email",
     };
   }
 
@@ -334,7 +308,10 @@ export const loginUserService = async (
 
   if (existingToken) {
     if (!existingToken.isValid) {
-      return { status: StatusCodes.UNAUTHORIZED, msg: "Invalid credentials" };
+      return {
+        status: StatusCodes.UNAUTHORIZED,
+        message: "Invalid credentials",
+      };
     }
     refreshToken = existingToken.refreshToken;
     return {
@@ -363,7 +340,7 @@ export const forgotPasswordService = async (
   origin: string,
 ): Promise<ServiceResponse> => {
   if (!email) {
-    return { status: StatusCodes.BAD_REQUEST, msg: "Please provide email" };
+    return { status: StatusCodes.BAD_REQUEST, message: "Please provide email" };
   }
 
   const user = await User.findOne({ email });
@@ -371,7 +348,7 @@ export const forgotPasswordService = async (
   if (!user || !user.isActive || user.isDeleted) {
     return {
       status: StatusCodes.OK,
-      msg: "Please check your email for the reset link.",
+      message: "Please check your email for the reset link.",
     };
   }
 
@@ -381,7 +358,7 @@ export const forgotPasswordService = async (
   ) {
     return {
       status: StatusCodes.TOO_MANY_REQUESTS,
-      msg: "Please wait before requesting another reset email.",
+      message: "Please wait before requesting another reset email.",
     };
   }
 
@@ -402,7 +379,7 @@ export const forgotPasswordService = async (
 
     return {
       status: StatusCodes.INTERNAL_SERVER_ERROR,
-      msg: "Failed to send reset password email. Please try again later.",
+      message: "Failed to send reset password email. Please try again later.",
     };
   }
 
@@ -413,7 +390,7 @@ export const forgotPasswordService = async (
 
   return {
     status: StatusCodes.OK,
-    msg: "Please check your email for the reset link.",
+    message: "Please check your email for the reset link.",
   };
 };
 
@@ -425,20 +402,20 @@ export const resetPasswordService = async (
   if (!resetPasswordToken || !email || !password) {
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "Please provide all required fields",
+      message: "Please provide all required fields",
     };
   }
 
   const user = await User.findOne({ email }).select("+resetPasswordToken");
 
   if (!user) {
-    return { status: StatusCodes.UNAUTHORIZED, msg: "User does not exist" };
+    return { status: StatusCodes.UNAUTHORIZED, message: "User does not exist" };
   }
 
   if (!user.resetPasswordToken || !user.resetPasswordTokenExpirationDate) {
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "No password reset request found",
+      message: "No password reset request found",
     };
   }
 
@@ -450,12 +427,12 @@ export const resetPasswordService = async (
     await user.save();
     return {
       status: StatusCodes.BAD_REQUEST,
-      msg: "Reset password token has expired",
+      message: "Reset password token has expired",
     };
   }
 
   if (user.resetPasswordToken !== hashPasswordToken(resetPasswordToken)) {
-    return { status: StatusCodes.BAD_REQUEST, msg: "Invalid reset token" };
+    return { status: StatusCodes.BAD_REQUEST, message: "Invalid reset token" };
   }
 
   user.password = password;
@@ -466,36 +443,9 @@ export const resetPasswordService = async (
   user.lockUntil = undefined;
   await user.save();
 
-  return { status: StatusCodes.OK, msg: "Password reset successfully" };
+  return { status: StatusCodes.OK, message: "Password reset successfully" };
 };
 
 export const logoutUserService = async (userId: string): Promise<void> => {
   await Token.deleteMany({ user: userId });
-};
-
-export const registerAdminService = async (
-  payload: any,
-): Promise<ServiceResponse> => {
-  const { fullName, institutionId, password } = payload;
-
-  const existingUser = await User.findOne({ institutionId });
-
-  if (existingUser) {
-    return { status: StatusCodes.BAD_REQUEST, msg: "Admin already exists" };
-  }
-
-  const admin = await User.create({
-    fullName,
-    institutionId,
-    password,
-    role: "admin",
-    emailVerified: true,
-    verifiedAt: new Date(),
-  });
-
-  return {
-    status: StatusCodes.CREATED,
-    msg: "Admin created successfully",
-    data: admin,
-  };
 };
