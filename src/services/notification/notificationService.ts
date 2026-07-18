@@ -104,7 +104,7 @@ export const sendSystemBroadcast = async (broadcastData: {
   targetAudience: "all" | "students" | "staff" | "admins";
 }) => {
   const { title, message, targetAudience } = broadcastData;
-  const query: any = { isActive: true };
+  const query: any = { isActive: true, role: { $ne: "super_admin" }, };
 
   if (targetAudience !== "all") {
     const roleMap: Record<string, string> = {

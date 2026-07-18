@@ -96,7 +96,7 @@ export const updateUserSchema = z.object({
 export const broadcastSchema = z.object({
   title: z.string().trim().min(1, { error: "Broadcast title is required" }),
 
-  error: z.string().trim().min(1, { error: "Broadcast error is required" }),
+  message: z.string().trim().min(1, { error: "Broadcast error is required" }),
 
   targetAudience: z.enum(["all", "students", "staff", "admins"], {
     error: "Target audience must be 'all', 'students', 'staff', or 'admins'",

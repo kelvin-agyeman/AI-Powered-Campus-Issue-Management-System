@@ -129,7 +129,7 @@ export const updateUser = async (
   updateData: UpdateUserType,
 ): Promise<ServiceResponse> => {
   const user = await User.findByIdAndUpdate(userId, updateData, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   }).select("-password");
 
@@ -154,7 +154,7 @@ export const toggleUserActiveStatus = async (
   const user = await User.findByIdAndUpdate(
     userId,
     { isActive },
-    { new: true },
+    { returnDocument: "after" },
   ).select("-password");
 
   if (!user) {
@@ -198,17 +198,6 @@ export const approveEditRequest = async (
     return {
       status: StatusCodes.BAD_REQUEST,
       message: "Request not found or already processed.",
-    };
-  }
-
-  const existingUser = await User.findOne({
-    institutionId: request.newInstitutionId,
-  });
-
-  if (existingUser) {
-    return {
-      status: StatusCodes.BAD_REQUEST,
-      message: "A user with this institution ID already exists.",
     };
   }
 
