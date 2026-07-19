@@ -20,6 +20,10 @@ import {
   authorizePermissions,
 } from "./middleware/authMiddleware";
 import cloudinary from "cloudinary";
+import YAML from "yamljs";
+import swaggerUI from "swagger-ui-express";
+
+const swaggerDocument = YAML.load("./src/docs/swagger.yaml");
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -69,11 +73,12 @@ app.use(
   authorizePermissions("admin", "super_admin"),
   analyticsRouter,
 );
+app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocument));
 
 app.use(notFound);
 app.use(errorHandlerMiddleware);
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 3000;
 
 const start = async () => {
   try {

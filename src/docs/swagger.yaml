@@ -1,0 +1,603 @@
+openapi: 3.0.0
+info:
+  title: AI-Powered Campus Issue Management System API
+  version: 1.0.0
+  description: "Production-ready RESTful API for AI-powered campus issue reporting, intelligent incident classification, automated department assignment, duplicate detection, resolution support, and end-to-end issue lifecycle management within academic institutions."
+  contact:
+    name: API Support
+servers:
+  - url: "http://localhost:3000/api/v1"
+    description: Development Server
+
+# ---------------------------------------------------------
+# SECURITY CONFIGURATION (Cookie Auth)
+# ---------------------------------------------------------
+security:
+  - cookieAuth: []
+
+paths:
+  # ==========================================
+  # AUTH ROUTES
+  # ==========================================
+  /auth/register:
+    post:
+      summary: Register Student
+      security: [] # Unprotected route
+      tags:
+        - Auth Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                institutionId:
+                  type: string
+                password:
+                  type: string
+              example:
+                fullName: "Student 3"
+                email: "kelvinagyeman47@gmail.com"
+                institutionId: "12345671"
+                password: "Secret123!"
+      responses:
+        "201":
+          description: User registered successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /auth/login:
+    post:
+      summary: Login User
+      security: []
+      tags:
+        - Auth Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                institutionId:
+                  type: string
+                password:
+                  type: string
+              example:
+                institutionId: "1234aabb"
+                password: "Secret123!"
+      responses:
+        "200":
+          description: Login successful. Sets accessToken and refreshToken in cookies.
+
+  /auth/logout:
+    delete:
+      summary: Logout User
+      tags:
+        - Auth Routes
+      responses:
+        "200":
+          description: Logged out successfully. Clears auth cookies.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /auth/forgot-password:
+    post:
+      summary: Forgot Password
+      security: []
+      tags:
+        - Auth Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+              example:
+                email: "kelvinagyeman11@gmail.com"
+      responses:
+        "200":
+          description: Password reset link sent
+
+  /auth/reset-password:
+    post:
+      summary: Reset Password
+      security: []
+      tags:
+        - Auth Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resetPasswordToken:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              example:
+                resetPasswordToken: "5195dcfd3716076dcdd15dad74f14076946c..."
+                email: "kelvinagyeman11@gmail.com"
+                password: "Secret123!"
+      responses:
+        "200":
+          description: Password successfully reset
+
+  /auth/verify-email:
+    post:
+      summary: Verify Email
+      security: []
+      tags:
+        - Auth Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                verificationToken:
+                  type: string
+                email:
+                  type: string
+                  format: email
+              example:
+                verificationToken: "e5427fc949490274a8923324..."
+                email: "kelvinagyeman11@gmail.com"
+      responses:
+        "200":
+          description: Email verified successfully
+
+  /auth/resend-verification-email:
+    post:
+      summary: Resend Verification Email
+      security: []
+      tags:
+        - Auth Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+              example:
+                email: "kelvinagyeman11@gmail.com"
+      responses:
+        "200":
+          description: If this email is registered, a new verification link has been sent.
+
+  /auth/create-super-admin:
+    post:
+      summary: Create Super Admin
+      security: []
+      tags:
+        - Auth Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                institutionId:
+                  type: string
+                password:
+                  type: string
+              example:
+                fullName: "Super Admin 1"
+                institutionId: "5678aabb"
+                password: "Secret123!"
+      responses:
+        "201":
+          description: Super Admin created
+
+  # ==========================================
+  # USER ROUTES
+  # ==========================================
+  /user/current:
+    get:
+      summary: Get Current User
+      tags:
+        - User Routes
+      responses:
+        "200":
+          description: Current user data retrieved
+
+  /user/update:
+    patch:
+      summary: Update User
+      tags:
+        - User Routes
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                avatar:
+                  type: string
+              example:
+                fullName: "Student 5"
+      responses:
+        "200":
+          description: user updated successfully
+
+  /user/update-email:
+    patch:
+      summary: Update Email
+      tags:
+        - User Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newEmail:
+                  type: string
+                  format: email
+              example:
+                newEmail: "kelvinagyeman47@gmail.com"
+      responses:
+        "200":
+          description: Verification email sent to your new email address.
+
+  /user/verify-updated-email:
+    post:
+      summary: Verify Updated Email
+      tags:
+        - User Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newEmail:
+                  type: string
+                  format: email
+                newVerificationToken:
+                  type: string
+              example:
+                newEmail: "kelvinagyeman47@gmail.com"
+                newVerificationToken: "da46a80345b178c2e96...."
+      responses:
+        "200":
+          description: Email updated successfully
+
+  /user/resend-verification-email:
+    post:
+      summary: Resend Verification Email
+      tags:
+        - User Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newEmail:
+                  type: string
+                  format: email
+              example:
+                newEmail: "kelvinagyeman47@gmail.com"
+      responses:
+        "200":
+          description: If this email is registered, a new verification link has been sent.
+
+  /user/send-edit-details-request:
+    post:
+      summary: Send Edit Details Request
+      tags:
+        - User Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newInstitutionId:
+                  type: string
+                reason:
+                  type: string
+              example:
+                newInstitutionId: "12345679"
+                reason: "made a mistake whilst entering my student id"
+      responses:
+        "200":
+          description: If this email is registered, a new verification link has been sent.
+
+  /user/delete-avatar:
+    delete:
+      summary: Delete Avatar
+      tags:
+        - User Routes
+      responses:
+        "200":
+          description: Avatar removed successfully.
+
+  # ==========================================
+  # ISSUE ROUTES
+  # ==========================================
+  /issue:
+    post:
+      summary: Create Issue
+      tags:
+        - Issue Routes
+      responses:
+        "201":
+          description: Issue created successfully
+    get:
+      summary: Get My Reported Issues
+      tags:
+        - Issue Routes
+      responses:
+        "200":
+          description: List of user issues
+
+  /issue/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        description: The unique ID of the issue
+    get:
+      summary: Get Single Issue
+      tags:
+        - Issue Routes
+      responses:
+        "200":
+          description: Issue details
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update Issue
+      tags:
+        - Issue Routes
+      responses:
+        "200":
+          description: Issue updated
+    delete:
+      summary: Delete Issue
+      tags:
+        - Issue Routes
+      responses:
+        "200":
+          description: Issue deleted
+
+  /issue/{id}/restore:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    patch:
+      summary: Restore Issue
+      tags:
+        - Issue Routes
+      responses:
+        "200":
+          description: Issue restored
+
+  # ==========================================
+  # ADMIN ROUTES
+  # ==========================================
+  /admin/issues:
+    get:
+      summary: Get All Issues
+      tags:
+        - Admin Routes
+      responses:
+        "200":
+          description: List of all issues
+
+  /admin/issues/pending:
+    get:
+      summary: Get Pending Issues
+      tags:
+        - Admin Routes
+      responses:
+        "200":
+          description: List of pending issues
+
+  /admin/issues/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get Single Issue
+      tags:
+        - Admin Routes
+      responses:
+        "200":
+          description: Issue retrieved
+
+  /admin/issues/{id}/approve:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    patch:
+      summary: Approve Issue
+      tags:
+        - Admin Routes
+      responses:
+        "200":
+          description: Issue approved
+
+  /admin/issues/{id}/assign:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    patch:
+      summary: Assign Staff
+      tags:
+        - Admin Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                staffId:
+                  type: string
+              example:
+                staffId: "6a5b8e4bb0c93571ec64b21f"
+      responses:
+        "200":
+          description: Staff assigned
+
+  /admin/staff/{departmentName}:
+    parameters:
+      - in: path
+        name: departmentName
+        required: true
+        schema:
+          type: string
+        example: "Health Services"
+    get:
+      summary: Get Staff By Department
+      tags:
+        - Admin Routes
+      responses:
+        "200":
+          description: List of staff in department
+
+  # ==========================================
+  # STAFF ROUTES
+  # ==========================================
+  /staff/issues:
+    get:
+      summary: Get Assigned Issues
+      tags:
+        - Staff Routes
+      responses:
+        "200":
+          description: List of assigned issues
+
+  /staff/issues/{id}/progress:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    patch:
+      summary: Update Progress
+      tags:
+        - Staff Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+              example:
+                note: "Student is currently at the hospital and is completely fine"
+      responses:
+        "200":
+          description: Progress updated
+
+  /staff/issues/{id}/resolve:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    patch:
+      summary: Resolve Issue
+      tags:
+        - Staff Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resolutionNotes:
+                  type: string
+              example:
+                resolutionNotes: "Took the student to the hospital and he's now in stable condition"
+      responses:
+        "200":
+          description: Issue resolved
+
+  # ==========================================
+  # ANALYTICS ROUTES
+  # ==========================================
+  /analytics/ai-impact:
+    get:
+      summary: Get AI Impact Analytics
+      description: Returns duplicate analytics and AI decision accuracy metrics.
+      tags:
+        - Analytics Routes
+      responses:
+        "200":
+          description: Analytics data retrieved
+
+# ---------------------------------------------------------
+# REUSABLE COMPONENTS
+# ---------------------------------------------------------
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+      description: Access token stored in HttpOnly cookies. Swagger UI allows you to inject this for testing.
+
+  responses:
+    BadRequest:
+      description: Bad Request (Invalid Input)
+    Unauthorized:
+      description: Unauthorized (Missing or invalid token)
+    Forbidden:
+      description: Forbidden (User lacks required permissions)
+    NotFound:
+      description: Resource Not Found
+    ServerError:
+      description: Internal Server Error

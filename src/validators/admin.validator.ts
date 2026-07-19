@@ -6,17 +6,23 @@ import {
 } from "../utils/constants";
 
 export const modifyIssueSchema = z.object({
-  category: z.enum(ISSUE_CATEGORIES, {
-    message: "Please select a valid issue category.",
-  }),
+  category: z
+    .enum(ISSUE_CATEGORIES, {
+      message: "Please select a valid issue category.",
+    })
+    .optional(),
 
-  priority: z.enum(PRIORITY_LEVELS, {
-    message: "Please select a valid priority level.",
-  }),
+  priority: z
+    .enum(PRIORITY_LEVELS, {
+      message: "Please select a valid priority level.",
+    })
+    .optional(),
 
-  department: z.enum(ASSIGNABLE_DEPARTMENTS, {
-    message: "Please select a valid department.",
-  }),
+  department: z
+    .enum(ASSIGNABLE_DEPARTMENTS, {
+      message: "Please select a valid department.",
+    })
+    .optional(),
 });
 
 export const rejectIssueSchema = z.object({
