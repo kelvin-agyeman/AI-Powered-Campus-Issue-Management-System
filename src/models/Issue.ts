@@ -137,6 +137,39 @@ const IssueSchema = new mongoose.Schema(
       type: Date,
     },
 
+    acceptedAt: {
+      type: Date,
+    },
+
+    progressUpdates: {
+      type: [
+        {
+          note: {
+            type: String,
+            required: true,
+            trim: true,
+          },
+
+          status: {
+            type: String,
+            enum: ISSUE_STATUSES,
+          },
+
+          updatedBy: {
+            type: mongoose.Types.ObjectId,
+            ref: "User",
+            required: true,
+          },
+
+          createdAt: {
+            type: Date,
+            default: Date.now,
+          },
+        },
+      ],
+      default: [],
+    },
+
     reviewedBy: {
       type: mongoose.Types.ObjectId,
       ref: "User",

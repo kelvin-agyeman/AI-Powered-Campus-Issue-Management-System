@@ -1,10 +1,11 @@
+import { Types } from "mongoose";
 import Notification from "../../models/Notification";
 import User from "../../models/User";
 import { NOTIFICATION_TYPES } from "../../utils/constants";
 import * as emailService from "./emailNotificationService";
 
 const createNotification = async (
-  recipientId: string,
+  recipientId: string | Types.ObjectId,
   title: string,
   message: string,
   type: string,
@@ -80,6 +81,23 @@ export const notifyIssueAssigned = async (
   );
 };
 
+export const notifyAssignmentAccepted = async (issue: any, staffId: any) => {
+  const issueTitle = issue.aiRecommendation?.title || "Reported Issue";
+
+  const admin = await User.findById(issue.assignedBy);
+  const staff = await User.findById(staffId);
+
+  if (!admin || !staff) return;
+
+  await createNotification(
+    admin._id,
+    "Work Commenced",
+    `${staff.fullName} has started working on the issue: "${issueTitle}".`,
+    NOTIFICATION_TYPES.ISSUE_IN_PROGRESS || "ISSUE_IN_PROGRESS",
+    issue._id,
+  );
+};
+
 export const notifyIssueResolved = async (user: any, issue: any) => {
   const issueTitle = issue.aiRecommendation?.title || "Reported Issue";
 
@@ -104,7 +122,7 @@ export const sendSystemBroadcast = async (broadcastData: {
   targetAudience: "all" | "students" | "staff" | "admins";
 }) => {
   const { title, message, targetAudience } = broadcastData;
-  const query: any = { isActive: true, role: { $ne: "super_admin" }, };
+  const query: any = { isActive: true, role: { $ne: "super_admin" } };
 
   if (targetAudience !== "all") {
     const roleMap: Record<string, string> = {

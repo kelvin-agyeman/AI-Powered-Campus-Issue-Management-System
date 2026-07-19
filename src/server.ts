@@ -11,7 +11,9 @@ import userRouter from "./routes/userRouter";
 import issueRouter from "./routes/issueRouter";
 import notificationRouter from "./routes/notificationRouter";
 import adminRouter from "./routes/adminRouter";
+import staffRouter from "./routes/staffRouter";
 import superAdminRouter from "./routes/superAdminRouter";
+import analyticsRouter from "./routes/analyticsRouter";
 import cookieParser from "cookie-parser";
 import {
   authenticateUser,
@@ -50,10 +52,22 @@ app.use(
   adminRouter,
 );
 app.use(
+  "/api/v1/staff",
+  authenticateUser,
+  authorizePermissions("staff"),
+  staffRouter,
+);
+app.use(
   "/api/v1/super-admin",
   authenticateUser,
   authorizePermissions("super_admin"),
   superAdminRouter,
+);
+app.use(
+  "/api/v1/analytics",
+  authenticateUser,
+  authorizePermissions("admin", "super_admin"),
+  analyticsRouter,
 );
 
 app.use(notFound);
