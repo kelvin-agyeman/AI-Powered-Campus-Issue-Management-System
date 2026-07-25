@@ -129,7 +129,7 @@ export const StudentSettingsPage = () => {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="absolute right-0 bottom-0 left-0 flex items-center justify-center bg-black/50 py-1 text-white transition-colors hover:bg-black/70"
+                    className="absolute right-0 bottom-0 left-0 flex cursor-pointer items-center justify-center bg-black/50 py-1 text-white transition-colors hover:bg-black/70"
                   >
                     <Camera size={14} />
                   </button>

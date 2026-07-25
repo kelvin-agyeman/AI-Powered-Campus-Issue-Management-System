@@ -6,43 +6,25 @@ import {
   CheckCheck,
 } from "lucide-react";
 
-export const StudentNotificationsPage = () => {
+export const AdminNotificationsPage = () => {
   // Mock data for notifications
   const notifications = [
     {
       id: 1,
-      title: "Report Resolved",
-      message:
-        "Your report 'Water leak under main sink' has been marked as resolved.",
-      time: "2 hours ago",
-      type: "success",
-      isRead: false,
-    },
-    {
-      id: 2,
-      title: "Status Update",
-      message: "Your report 'Broken Air Conditioner' is now In Progress.",
-      time: "Yesterday",
-      type: "update",
-      isRead: false,
-    },
-    {
-      id: 3,
-      title: "Action Needed",
-      message:
-        "Facility Manager requested more details regarding your recent report.",
-      time: "Oct 22, 2026",
-      type: "alert",
-      isRead: true,
-    },
-    {
-      id: 4,
       title: "System Announcement",
       message:
         "Scheduled maintenance for the library water system this weekend.",
       time: "Oct 20, 2026",
       type: "info",
-      isRead: true,
+      isRead: false,
+    },
+    {
+      id: 2,
+      title: "System Announcement",
+      message: "We have updated our terms and conditions.",
+      time: "Mar 19, 2025",
+      type: "info",
+      isRead: false,
     },
   ];
 

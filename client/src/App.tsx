@@ -19,6 +19,13 @@ import { NewReportPage } from "./pages/student/NewReportPage";
 import { StudentSettingsPage } from "./pages/student/StudentSettingsPage";
 import { StudentNotificationsPage } from "./pages/student/StudentNotificationsPage";
 
+// Admin Pages & Layout
+import { AdminLayout } from "./layouts/AdminLayout";
+import { AdminDashboard } from "./pages/admin/AdminDashboard";
+import { PendingIssues } from "./pages/admin/PendingIssues";
+import { AdminSettingsPage } from "./pages/admin/AdminSettingsPage";
+import { AdminNotificationsPage } from "./pages/admin/AdminNotificationsPage";
+
 // Global Components
 import { ErrorComponent } from "./components/ui/ErrorComponent";
 
@@ -28,32 +35,30 @@ const router = createBrowserRouter([
     element: <Navigate to="/login" replace />,
     errorElement: <ErrorComponent />,
   },
+
+  // Auth Routes
   {
     path: "/login",
     element: <LoginPage />,
   },
-
   {
     path: "/register",
     element: <RegisterPage />,
   },
-
   {
     path: "/forgot-password",
     element: <ForgotPasswordPage />,
   },
-
   {
     path: "/reset-password",
     element: <ResetPasswordPage />,
   },
-
   {
     path: "/verify-email",
     element: <EmailVerificationPage />,
   },
 
-  // New Student Routes
+  // Student Routes
   {
     path: "/student",
     element: <StudentLayout />,
@@ -82,6 +87,35 @@ const router = createBrowserRouter([
       {
         path: "notifications",
         element: <StudentNotificationsPage />,
+      },
+    ],
+  },
+
+  // Admin Routes
+  {
+    path: "/admin",
+    element: <AdminLayout />,
+    errorElement: <ErrorComponent />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/admin/dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: <AdminDashboard />,
+      },
+      {
+        path: "pending",
+        element: <PendingIssues />,
+      },
+      {
+        path: "settings",
+        element: <AdminSettingsPage />,
+      },
+      {
+        path: "notifications",
+        element: <AdminNotificationsPage />,
       },
     ],
   },
