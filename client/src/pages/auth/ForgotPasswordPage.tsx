@@ -7,7 +7,10 @@ import CampusDeskLogo from "../../assets/images/CampusDesk-logo.png";
 
 export const ForgotPasswordPage = () => {
   return (
-    <AuthLayout>
+    <AuthLayout
+      heading="Regain access to CampusDesk"
+      description="Don't lose track of your maintenance requests. Enter your details to receive a secure reset link and get back to managing your campus reports."
+    >
       <div className="mb-8 flex cursor-default items-center gap-3">
         <img src={CampusDeskLogo} alt="Campus Desk Logo" width={40} />
         <span className="text-grey-500 text-xl font-bold">CampusDesk</span>

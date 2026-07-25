@@ -5,8 +5,11 @@ import CampusDeskLogo from "../../assets/images/CampusDesk-logo.png";
 
 export const ResetPasswordPage = () => {
   return (
-    <AuthLayout>
-      <div className="mb-8 flex items-center gap-3 cursor-default">
+    <AuthLayout
+      heading="Update your security credentials"
+      description="Create a strong, new password to keep your account secure so you can continue reporting and tracking campus facility issues without interruption."
+    >
+      <div className="mb-8 flex cursor-default items-center gap-3">
         <img src={CampusDeskLogo} alt="Campus Desk Logo" width={40} />
         <span className="text-grey-500 text-xl font-bold">CampusDesk</span>
       </div>

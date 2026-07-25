@@ -3,40 +3,85 @@ import {
   RouterProvider,
   Navigate,
 } from "react-router-dom";
+
+// Auth Pages
 import { LoginPage } from "./pages/auth/LoginPage";
 import { RegisterPage } from "./pages/auth/RegisterPage";
 import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage";
 import { EmailVerificationPage } from "./pages/auth/EmailVerificationPage";
+
+// Student Pages & Layout
+import { StudentLayout } from "./layouts/StudentLayout";
+import { StudentDashboard } from "./pages/student/StudentDashboard";
+import { MyReportsPage } from "./pages/student/MyReportsPage";
+import { NewReportPage } from "./pages/student/NewReportPage";
+import { StudentSettingsPage } from "./pages/student/StudentSettingsPage";
+import { StudentNotificationsPage } from "./pages/student/StudentNotificationsPage";
+
+// Global Components
 import { ErrorComponent } from "./components/ui/ErrorComponent";
 
 const router = createBrowserRouter([
   {
+    path: "/",
+    element: <Navigate to="/login" replace />,
+    errorElement: <ErrorComponent />,
+  },
+  {
+    path: "/login",
+    element: <LoginPage />,
+  },
+
+  {
+    path: "/register",
+    element: <RegisterPage />,
+  },
+
+  {
+    path: "/forgot-password",
+    element: <ForgotPasswordPage />,
+  },
+
+  {
+    path: "/reset-password",
+    element: <ResetPasswordPage />,
+  },
+
+  {
+    path: "/verify-email",
+    element: <EmailVerificationPage />,
+  },
+
+  // New Student Routes
+  {
+    path: "/student",
+    element: <StudentLayout />,
     errorElement: <ErrorComponent />,
     children: [
       {
-        path: "/",
-        element: <Navigate to="/login" replace />,
+        index: true,
+        element: <Navigate to="/student/dashboard" replace />,
       },
       {
-        path: "/login",
-        element: <LoginPage />,
+        path: "dashboard",
+        element: <StudentDashboard />,
       },
       {
-        path: "/register",
-        element: <RegisterPage />,
+        path: "reports",
+        element: <MyReportsPage />,
       },
       {
-        path: "/forgot-password",
-        element: <ForgotPasswordPage />,
+        path: "new-report",
+        element: <NewReportPage />,
       },
       {
-        path: "/reset-password",
-        element: <ResetPasswordPage />,
+        path: "settings",
+        element: <StudentSettingsPage />,
       },
       {
-        path: "/verify-email",
-        element: <EmailVerificationPage />,
+        path: "notifications",
+        element: <StudentNotificationsPage />,
       },
     ],
   },

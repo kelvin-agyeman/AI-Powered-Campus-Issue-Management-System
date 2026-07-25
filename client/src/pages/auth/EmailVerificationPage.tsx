@@ -5,7 +5,10 @@ import { CheckCircle2 } from "lucide-react";
 
 export const EmailVerificationPage = () => {
   return (
-    <AuthLayout>
+    <AuthLayout
+      heading="Secure your CampusDesk account"
+      description="Verifying your email ensures that all status updates regarding your reported facility issues and maintenance requests are delivered safely to your inbox."
+    >
       <div className="flex flex-col items-center text-center">
         <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
           <CheckCircle2 size={40} className="text-green-500" />

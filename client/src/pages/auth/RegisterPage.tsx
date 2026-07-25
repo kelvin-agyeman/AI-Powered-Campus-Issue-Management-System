@@ -7,7 +7,10 @@ import CampusDeskLogo from "../../assets/images/CampusDesk-logo.png";
 
 export const RegisterPage = () => {
   return (
-    <AuthLayout>
+    <AuthLayout 
+      heading="Join the CampusDesk Network"
+      description="Create your student account today to start reporting maintenance issues directly to the facility management team."
+    >
       <div className="mb-8 flex cursor-default items-center gap-3">
         <img src={CampusDeskLogo} alt="Campus Desk Logo" width={40} />
         <span className="text-grey-500 text-xl font-bold">CampusDesk</span>
