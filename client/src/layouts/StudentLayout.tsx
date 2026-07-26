@@ -4,11 +4,11 @@ import {
   LayoutDashboard,
   ClipboardList,
   PlusCircle,
-  Settings,
   LogOut,
   Menu,
   Bell,
   X,
+  User,
 } from "lucide-react";
 import CampusDeskWhiteLogo from "../assets/icons/CampusDesk-white-logo.png";
 
@@ -20,7 +20,7 @@ export const StudentLayout = () => {
     { name: "Dashboard", path: "/student/dashboard", icon: LayoutDashboard },
     { name: "My Reports", path: "/student/reports", icon: ClipboardList },
     { name: "New Report", path: "/student/new-report", icon: PlusCircle },
-    { name: "Settings", path: "/student/settings", icon: Settings },
+    { name: "Profile", path: "/student/profile", icon: User },
   ];
 
   return (

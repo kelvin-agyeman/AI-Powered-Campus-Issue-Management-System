@@ -16,15 +16,29 @@ import { StudentLayout } from "./layouts/StudentLayout";
 import { StudentDashboard } from "./pages/student/StudentDashboard";
 import { MyReportsPage } from "./pages/student/MyReportsPage";
 import { NewReportPage } from "./pages/student/NewReportPage";
-import { StudentSettingsPage } from "./pages/student/StudentSettingsPage";
+import { StudentProfilePage } from "./pages/student/StudentProfilePage";
 import { StudentNotificationsPage } from "./pages/student/StudentNotificationsPage";
 
 // Admin Pages & Layout
 import { AdminLayout } from "./layouts/AdminLayout";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
-import { PendingIssues } from "./pages/admin/PendingIssues";
-import { AdminSettingsPage } from "./pages/admin/AdminSettingsPage";
+import { PendingReviews } from "./pages/admin/PendingReviews";
+import { AdminProfilePage } from "./pages/admin/AdminProfilePage";
 import { AdminNotificationsPage } from "./pages/admin/AdminNotificationsPage";
+import { AllIssuesPage } from "./pages/admin/AllIssues";
+import { IssueReviewDetail } from "./pages/admin/IssueReviewDetail";
+
+// Staff Pages & Layout
+import { StaffLayout } from "./layouts/StaffLayout";
+import { StaffDashboard } from "./pages/staff/StaffDashboard";
+import { StaffProfilePage } from "./pages/staff/StaffProfilePage";
+import { StaffNotificationsPage } from "./pages/staff/StaffNotificationsPage";
+import { StaffIssueDetail } from "./pages/staff/StaffIssueDetail";
+import { StaffResolvedIssues } from "./pages/staff/StaffResolvedIssues";
+
+// Super Admin Pages & Layout
+import { SuperAdminLayout } from "./layouts/SuperAdminLayout";
+import { SuperAdminDashboard } from "./pages/super-admin/SuperAdminDashboard";
 
 // Global Components
 import { ErrorComponent } from "./components/ui/ErrorComponent";
@@ -81,8 +95,8 @@ const router = createBrowserRouter([
         element: <NewReportPage />,
       },
       {
-        path: "settings",
-        element: <StudentSettingsPage />,
+        path: "profile",
+        element: <StudentProfilePage />,
       },
       {
         path: "notifications",
@@ -107,15 +121,73 @@ const router = createBrowserRouter([
       },
       {
         path: "pending",
-        element: <PendingIssues />,
+        element: <PendingReviews />,
       },
       {
-        path: "settings",
-        element: <AdminSettingsPage />,
+        path: "pending/:id",
+        element: <IssueReviewDetail />,
+      },
+      {
+        path: "profile",
+        element: <AdminProfilePage />,
       },
       {
         path: "notifications",
         element: <AdminNotificationsPage />,
+      },
+      {
+        path: "issues",
+        element: <AllIssuesPage />,
+      },
+    ],
+  },
+
+  // Staff Routes
+  {
+    path: "/staff",
+    element: <StaffLayout />,
+    errorElement: <ErrorComponent />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/staff/dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: <StaffDashboard />,
+      },
+      {
+        path: "task/:id",
+        element: <StaffIssueDetail />,
+      },
+      {
+        path: "resolved",
+        element: <StaffResolvedIssues />,
+      },
+      {
+        path: "profile",
+        element: <StaffProfilePage />,
+      },
+      {
+        path: "notifications",
+        element: <StaffNotificationsPage />,
+      },
+    ],
+  },
+
+  // Super Admin Routes
+  {
+    path: "/super-admin",
+    element: <SuperAdminLayout />,
+    errorElement: <ErrorComponent />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/super-admin/dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: <SuperAdminDashboard />,
       },
     ],
   },

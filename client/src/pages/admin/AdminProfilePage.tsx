@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { User, Save, Camera, Trash2 } from "lucide-react";
 
-export const AdminSettingsPage = () => {
+export const AdminProfilePage = () => {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isDeletingAvatar, setIsDeletingAvatar] = useState(false);
@@ -41,7 +41,7 @@ export const AdminSettingsPage = () => {
     <>
       <div className="mx-auto max-w-3xl space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Account Profile</h1>
           <p className="mt-1 text-sm text-gray-500">
             Manage your personal profile and account credentials.
           </p>

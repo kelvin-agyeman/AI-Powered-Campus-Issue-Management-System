@@ -2,25 +2,35 @@ import { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
-  Clock,
-  ListTodo,
+  Users,
+  ClipboardEdit,
+  Megaphone,
+  User,
   LogOut,
   Menu,
   Bell,
   X,
-  User,
 } from "lucide-react";
 import CampusDeskWhiteLogo from "../assets/icons/CampusDesk-white-logo.png";
 
-export const AdminLayout = () => {
+export const SuperAdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
 
   const navLinks = [
-    { name: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
-    { name: "Pending Reviews", path: "/admin/pending", icon: Clock },
-    { name: "All Issues", path: "/admin/issues", icon: ListTodo },
-    { name: "Profile", path: "/admin/profile", icon: User },
+    {
+      name: "Dashboard",
+      path: "/super-admin/dashboard",
+      icon: LayoutDashboard,
+    },
+    { name: "User Management", path: "/super-admin/users", icon: Users },
+    {
+      name: "Edit Requests",
+      path: "/super-admin/requests",
+      icon: ClipboardEdit,
+    },
+    { name: "Broadcasts", path: "/super-admin/broadcasts", icon: Megaphone },
+    { name: "Profile", path: "/super-admin/profile", icon: User },
   ];
 
   return (
@@ -59,7 +69,8 @@ export const AdminLayout = () => {
         <nav className="mt-6 flex flex-1 flex-col gap-2 overflow-y-auto px-4 pb-4">
           {navLinks.map((link) => {
             const Icon = link.icon;
-            const isActive = location.pathname === link.path;
+            // Highlight link if active or if it's a child route of the main path
+            const isActive = location.pathname.startsWith(link.path);
 
             return (
               <Link
@@ -103,28 +114,30 @@ export const AdminLayout = () => {
 
           <div className="flex flex-1 items-center justify-end gap-4">
             <Link
-              to="/admin/notifications"
+              to="/super-admin/notifications"
               className="relative rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none"
             >
               <Bell size={20} />
-              {/* Notification Badge - You can make this conditional later based on unread count */}
+              {/* Notification Badge */}
               <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
             </Link>
 
             <div className="flex items-center gap-3 border-l border-gray-200 pl-4">
               <div className="hidden text-right text-sm sm:block">
-                <p className="font-semibold text-gray-700">Administrator</p>
-                <p className="text-xs text-gray-500">System Admin</p>
+                <p className="font-semibold text-gray-700">
+                  Super Administrator
+                </p>
+                <p className="text-xs text-gray-500">System Root</p>
               </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-800 font-bold text-white">
-                AD
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 font-bold text-white shadow-sm">
+                SA
               </div>
             </div>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>
