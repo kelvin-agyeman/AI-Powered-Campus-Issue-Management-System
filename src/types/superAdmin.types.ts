@@ -31,6 +31,7 @@ type KNUST_DEPARTMENTS =
 export type CreateAdminType = {
   fullName: string;
   institutionId: string;
+  email: string;
   password?: string;
 };
 

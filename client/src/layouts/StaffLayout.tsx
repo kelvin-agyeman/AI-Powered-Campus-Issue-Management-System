@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLoaderData, useLocation } from "react-router-dom";
 import {
   ClipboardList,
   CheckSquare,
@@ -10,9 +10,13 @@ import {
   X,
 } from "lucide-react";
 import CampusDeskWhiteLogo from "../assets/icons/CampusDesk-white-logo.png";
+import { useLogout } from "../hooks/useAuth";
 
 export const StaffLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { mutate: logout, isPending } = useLogout();
+  const { user } = useLoaderData();
+
   const location = useLocation();
 
   const navLinks = [
@@ -20,6 +24,15 @@ export const StaffLayout = () => {
     { name: "Resolved Issues", path: "/staff/resolved", icon: CheckSquare },
     { name: "Profile", path: "/staff/profile", icon: User },
   ];
+
+  const getInitials = (fullName: string) => {
+    return fullName
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
@@ -78,13 +91,14 @@ export const StaffLayout = () => {
         </nav>
 
         <div className="shrink-0 border-t border-white/10 p-4">
-          <Link
-            to="/login"
-            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-red-200 transition-colors hover:bg-white/10 hover:text-white"
+          <button
+            onClick={() => logout()}
+            disabled={isPending}
+            className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-red-200 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
             <LogOut size={20} />
-            Logout
-          </Link>
+            {isPending ? "Logging out..." : "Logout"}
+          </button>
         </div>
       </aside>
 
@@ -111,11 +125,11 @@ export const StaffLayout = () => {
 
             <div className="flex items-center gap-3 border-l border-gray-200 pl-4">
               <div className="hidden text-right text-sm sm:block">
-                <p className="font-semibold text-gray-700">John Staff</p>
-                <p className="text-xs text-gray-500">Maintenance Dept.</p>
+                <p className="font-semibold text-gray-700">{user.fullName}</p>
+                <p className="text-xs text-gray-500">{user.department}</p>
               </div>
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-800 font-bold text-white">
-                JS
+                {getInitials(user.fullName)}
               </div>
             </div>
           </div>

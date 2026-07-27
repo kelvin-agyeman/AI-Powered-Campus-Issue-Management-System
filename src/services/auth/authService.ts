@@ -37,10 +37,19 @@ export const registerStudentService = async (
   });
 
   if (existingUser) {
-    return {
-      status: StatusCodes.BAD_REQUEST,
-      message: "Student with this email or institution ID already exists",
-    };
+    if (existingUser.email === email) {
+      return {
+        status: StatusCodes.BAD_REQUEST,
+        message: "A student with this email already exists",
+      };
+    }
+
+    if (existingUser.institutionId === institutionId) {
+      return {
+        status: StatusCodes.BAD_REQUEST,
+        message: "A student with this institution ID already exists",
+      };
+    }
   }
 
   const verificationToken = crypto.randomBytes(40).toString("hex");

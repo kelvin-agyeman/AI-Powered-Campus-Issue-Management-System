@@ -10,6 +10,7 @@ import { RegisterPage } from "./pages/auth/RegisterPage";
 import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage";
 import { EmailVerificationPage } from "./pages/auth/EmailVerificationPage";
+import { CheckEmailPage } from "./pages/auth/CheckEmailPage"; // <-- Added Import
 
 // Student Pages & Layout
 import { StudentLayout } from "./layouts/StudentLayout";
@@ -39,9 +40,14 @@ import { StaffResolvedIssues } from "./pages/staff/StaffResolvedIssues";
 // Super Admin Pages & Layout
 import { SuperAdminLayout } from "./layouts/SuperAdminLayout";
 import { SuperAdminDashboard } from "./pages/super-admin/SuperAdminDashboard";
+import { SuperAdminProfilePage } from "./pages/super-admin/SuperAdminProfilePage";
+import { SuperAdminUsers } from "./pages/super-admin/SuperAdminUsers";
+import { SuperAdminRequests } from "./pages/super-admin/SuperAdminRequests";
+import { SuperAdminBroadcasts } from "./pages/super-admin/SuperAdminBroadcasts";
 
 // Global Components
 import { ErrorComponent } from "./components/ui/ErrorComponent";
+import { layoutLoader } from "./loaders/auth.loader";
 
 const router = createBrowserRouter([
   {
@@ -58,6 +64,10 @@ const router = createBrowserRouter([
   {
     path: "/register",
     element: <RegisterPage />,
+  },
+  {
+    path: "/check-email",
+    element: <CheckEmailPage />,
   },
   {
     path: "/forgot-password",
@@ -77,6 +87,7 @@ const router = createBrowserRouter([
     path: "/student",
     element: <StudentLayout />,
     errorElement: <ErrorComponent />,
+    loader: layoutLoader(["student"]),
     children: [
       {
         index: true,
@@ -110,6 +121,7 @@ const router = createBrowserRouter([
     path: "/admin",
     element: <AdminLayout />,
     errorElement: <ErrorComponent />,
+    loader: layoutLoader(["admin"]),
     children: [
       {
         index: true,
@@ -147,6 +159,7 @@ const router = createBrowserRouter([
     path: "/staff",
     element: <StaffLayout />,
     errorElement: <ErrorComponent />,
+    loader: layoutLoader(["staff"]),
     children: [
       {
         index: true,
@@ -180,6 +193,7 @@ const router = createBrowserRouter([
     path: "/super-admin",
     element: <SuperAdminLayout />,
     errorElement: <ErrorComponent />,
+    loader: layoutLoader(["super_admin"]),
     children: [
       {
         index: true,
@@ -188,6 +202,22 @@ const router = createBrowserRouter([
       {
         path: "dashboard",
         element: <SuperAdminDashboard />,
+      },
+      {
+        path: "users",
+        element: <SuperAdminUsers />,
+      },
+      {
+        path: "requests",
+        element: <SuperAdminRequests />,
+      },
+      {
+        path: "broadcasts",
+        element: <SuperAdminBroadcasts />,
+      },
+      {
+        path: "profile",
+        element: <SuperAdminProfilePage />,
       },
     ],
   },

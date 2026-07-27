@@ -1,11 +1,23 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AuthLayout } from "../../layouts/AuthLayout";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { ArrowLeft } from "lucide-react";
 import CampusDeskLogo from "../../assets/images/CampusDesk-logo.png";
+import { useForgotPassword } from "../../hooks/useAuth";
 
 export const ForgotPasswordPage = () => {
+  const [email, setEmail] = useState("");
+  const { mutate: sendResetLink, isPending } = useForgotPassword();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    sendResetLink({ email });
+  };
+
   return (
     <AuthLayout
       heading="Regain access to CampusDesk"
@@ -24,23 +36,31 @@ export const ForgotPasswordPage = () => {
         password.
       </p>
 
-      <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+      <form className="space-y-5" onSubmit={handleSubmit}>
         <Input
           label="Email Address"
           id="email"
+          type="email"
           placeholder="Enter your email address"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={isPending}
           required
         />
 
-        <Button type="submit" className="w-full cursor-pointer">
-          Send Reset Link
+        <Button
+          type="submit"
+          className="w-full cursor-pointer"
+          disabled={isPending || !email}
+        >
+          {isPending ? "Sending..." : "Send Reset Link"}
         </Button>
       </form>
 
       <div className="mt-8 text-center">
         <Link
           to="/login"
-          className="text-grey-400 inline-flex items-center gap-2 text-sm font-medium hover:text-red-500"
+          className="text-grey-400 inline-flex items-center gap-2 text-sm font-medium transition-colors hover:text-red-500"
         >
           <ArrowLeft size={16} />
           Back to Login

@@ -23,7 +23,7 @@ export const sendVerificationEmail = async ({
   origin,
   purpose,
 }: VerificationEmailPayload): Promise<unknown> => {
-  const verifyEmail = `${origin}/student/verify-email?token=${verificationToken}&email=${email}`;
+  const verifyEmail = `${origin}/verify-email?token=${verificationToken}&email=${email}`;
 
   const message = `
     <p>Please confirm your email by clicking on the following link:</p>
@@ -43,7 +43,7 @@ export const sendResetPasswordEmail = async ({
   resetPasswordToken,
   origin,
 }: ResetPasswordPayload): Promise<unknown> => {
-  const resetURL = `${origin}/student/reset-password?token=${resetPasswordToken}&email=${email}`;
+  const resetURL = `${origin}/reset-password?token=${resetPasswordToken}&email=${email}`;
 
   return sendEmail({
     to: email,

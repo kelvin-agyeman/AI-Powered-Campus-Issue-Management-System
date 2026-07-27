@@ -1,9 +1,61 @@
+import { useState } from "react";
+import { useSearchParams, Link } from "react-router-dom";
+import { toast } from "sonner";
 import { AuthLayout } from "../../layouts/AuthLayout";
 import { PasswordInput } from "../../components/ui/PasswordInput";
 import { Button } from "../../components/ui/Button";
 import CampusDeskLogo from "../../assets/images/CampusDesk-logo.png";
+import { useResetPassword } from "../../hooks/useAuth";
 
 export const ResetPasswordPage = () => {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+  const email = searchParams.get("email");
+
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const { mutate: resetPassword, isPending } = useResetPassword();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!token || !email) {
+      toast.error("Invalid or missing reset token.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+
+    resetPassword({
+      password,
+      email,
+      resetPasswordToken: token,
+    });
+  };
+
+  // If a user navigates directly to this page without a token/email
+  if (!token || !email) {
+    return (
+      <AuthLayout
+        heading="Invalid Link"
+        description="This password reset link is invalid or has expired."
+      >
+        <div className="text-center">
+          <p className="text-grey-500 mb-6 text-lg font-medium">
+            Please request a new password reset link.
+          </p>
+          <Link to="/forgot-password">
+            <Button className="w-full">Go to Forgot Password</Button>
+          </Link>
+        </div>
+      </AuthLayout>
+    );
+  }
+
   return (
     <AuthLayout
       heading="Update your security credentials"
@@ -21,11 +73,14 @@ export const ResetPasswordPage = () => {
         Your new password must be different from previously used passwords.
       </p>
 
-      <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+      <form className="space-y-5" onSubmit={handleSubmit}>
         <PasswordInput
           label="New Password"
           id="newPassword"
           placeholder="Enter new password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={isPending}
           required
         />
 
@@ -33,11 +88,18 @@ export const ResetPasswordPage = () => {
           label="Confirm New Password"
           id="confirmPassword"
           placeholder="Confirm new password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          disabled={isPending}
           required
         />
 
-        <Button type="submit" className="w-full cursor-pointer">
-          Reset Password
+        <Button
+          type="submit"
+          className="w-full cursor-pointer"
+          disabled={isPending || !password || !confirmPassword}
+        >
+          {isPending ? "Resetting..." : "Reset Password"}
         </Button>
       </form>
     </AuthLayout>

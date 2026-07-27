@@ -116,6 +116,65 @@ export const notifyIssueResolved = async (user: any, issue: any) => {
   );
 };
 
+// --- NEW NOTIFICATION HANDLERS ---
+
+export const notifyEditRequestApproved = async (
+  user: any,
+  newInstitutionId: string,
+) => {
+  await createNotification(
+    user._id,
+    "ID Update Approved",
+    `Your request to change your ID to ${newInstitutionId} has been approved.`,
+    "EDIT_REQUEST_APPROVED",
+  );
+
+  await emailService.sendEditRequestApprovedEmail(
+    user.email,
+    user.fullName,
+    newInstitutionId,
+  );
+};
+
+export const notifyEditRequestRejected = async (user: any, request: any) => {
+  const reason = request.reason || "No specific reason provided.";
+
+  await createNotification(
+    user._id,
+    "ID Update Rejected",
+    `Your request to update your ID has been rejected.`,
+    "EDIT_REQUEST_REJECTED",
+  );
+
+  await emailService.sendEditRequestRejectedEmail(
+    user.email,
+    user.fullName,
+    reason,
+  );
+};
+
+export const notifyAdminUserCreated = async (user: any) => {
+  await createNotification(
+    user._id,
+    "Welcome to the System",
+    "Your admin account has been created. Please set up your password.",
+    "ACCOUNT_CREATED",
+  );
+
+  await emailService.sendAdminCreatedEmail(user.email, user.fullName);
+};
+
+export const notifyStaffUserCreated = async (user: any) => {
+  await createNotification(
+    user._id,
+    "Welcome to the System",
+    "Your staff account has been created. Please set up your password.",
+    "ACCOUNT_CREATED",
+  );
+
+  await emailService.sendStaffCreatedEmail(user.email, user.fullName);
+};
+
 export const sendSystemBroadcast = async (broadcastData: {
   title: string;
   message: string;
@@ -133,7 +192,8 @@ export const sendSystemBroadcast = async (broadcastData: {
     query.role = roleMap[targetAudience];
   }
 
-  const users = await User.find(query).select("_id");
+  // Ensure we grab the email alongside the ID for our email service
+  const users = await User.find(query).select("_id email");
 
   if (users.length === 0) return;
 
@@ -144,5 +204,16 @@ export const sendSystemBroadcast = async (broadcastData: {
     type: NOTIFICATION_TYPES.SYSTEM_BROADCAST || "SYSTEM_BROADCAST",
   }));
 
+  // Create in-app notifications in bulk
   await Notification.insertMany(notifications);
+
+  // Send broadcast emails concurrently
+  // (Using Promise.all allows Node.js to fire these off efficiently)
+  await Promise.all(
+    users.map((user) => {
+      if (!user.email) return Promise.resolve();
+
+      return emailService.sendBroadcastEmail(user.email, title, message);
+    }),
+  );
 };

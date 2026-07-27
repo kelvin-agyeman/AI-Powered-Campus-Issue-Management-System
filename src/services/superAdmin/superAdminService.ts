@@ -21,7 +21,7 @@ export type ServiceResponse = {
 export const registerAdmin = async (
   adminData: CreateAdminType,
 ): Promise<ServiceResponse> => {
-  const { fullName, institutionId, password } = adminData;
+  const { fullName, email, institutionId, password } = adminData;
   const existingUser = await User.findOne({
     institutionId: adminData.institutionId,
   });
@@ -36,11 +36,15 @@ export const registerAdmin = async (
   const admin = await User.create({
     fullName,
     institutionId,
+    email,
     password,
     role: "admin",
     emailVerified: true,
     verifiedAt: new Date(),
   });
+
+  // Trigger admin creation notification and email
+  await notificationService.notifyAdminUserCreated(admin);
 
   return {
     status: StatusCodes.CREATED,
@@ -74,6 +78,9 @@ export const registerStaff = async (
     emailVerified: true,
     verifiedAt: new Date(),
   });
+
+  // Trigger staff creation notification and email
+  await notificationService.notifyStaffUserCreated(staff);
 
   return {
     status: StatusCodes.CREATED,
@@ -192,7 +199,9 @@ export const getEditRequests = async (
 export const approveEditRequest = async (
   requestId: string,
 ): Promise<ServiceResponse> => {
-  const request = await EditDetailsRequest.findById(requestId);
+  // Populate requestedBy so we can access the user's email and name for notifications
+  const request =
+    await EditDetailsRequest.findById(requestId).populate("requestedBy");
 
   if (!request || request.status !== "pending") {
     return {
@@ -201,12 +210,25 @@ export const approveEditRequest = async (
     };
   }
 
-  await User.findByIdAndUpdate(request.requestedBy, {
+  if (!request.newInstitutionId) {
+    return {
+      status: StatusCodes.BAD_REQUEST,
+      message: "New Institution ID is required",
+    };
+  }
+
+  await User.findByIdAndUpdate(request.requestedBy._id, {
     institutionId: request.newInstitutionId,
   });
 
   request.status = "approved";
   await request.save();
+
+  // Notify the user of the approval
+  await notificationService.notifyEditRequestApproved(
+    request.requestedBy,
+    request.newInstitutionId,
+  );
 
   return {
     status: StatusCodes.OK,
@@ -217,8 +239,11 @@ export const approveEditRequest = async (
 
 export const rejectEditRequest = async (
   requestId: string,
+  reason: string,
 ): Promise<ServiceResponse> => {
-  const request = await EditDetailsRequest.findById(requestId);
+  // Populate requestedBy so we can access the user's email and name for notifications
+  const request =
+    await EditDetailsRequest.findById(requestId).populate("requestedBy");
 
   if (!request || request.status !== "pending") {
     return {
@@ -228,7 +253,14 @@ export const rejectEditRequest = async (
   }
 
   request.status = "rejected";
+  request.reason = reason;
   await request.save();
+
+  // Notify the user of the rejection
+  await notificationService.notifyEditRequestRejected(
+    request.requestedBy,
+    request.reason,
+  );
 
   return {
     status: StatusCodes.OK,

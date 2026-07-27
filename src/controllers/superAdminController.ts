@@ -92,10 +92,13 @@ export const approveEditRequest = async (
 };
 
 export const rejectEditRequest = async (
-  req: Request<{ id: string }>,
+  req: Request<{ id: string; reason: string }>,
   res: Response,
 ) => {
-  const result = await superAdminService.rejectEditRequest(req.params.id);
+  const result = await superAdminService.rejectEditRequest(
+    req.params.id,
+    req.body.reason,
+  );
   res.status(result.status).json({ message: result.message, ...result.data });
 };
 
