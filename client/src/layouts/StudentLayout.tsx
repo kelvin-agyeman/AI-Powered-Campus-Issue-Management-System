@@ -143,7 +143,7 @@ export const StudentLayout = () => {
 
         {/* Page Content - This is the ONLY element allowed to scroll now */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <Outlet />
+          <Outlet context={{ user }} />
         </main>
       </div>
     </div>

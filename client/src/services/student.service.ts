@@ -1,0 +1,40 @@
+import customFetch from "../utils/customFetch";
+import type {
+  GetIssuesResponse,
+  GetNotificationsResponse,
+} from "../types/student.types";
+
+export const getStudentIssues = async (): Promise<GetIssuesResponse> => {
+  const response = await customFetch.get("/issues");
+  return response.data;
+};
+
+export const createIssue = async (data: FormData) => {
+  const response = await customFetch.post("/issues", data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+};
+
+export const updateIssue = async (id: string, data: FormData) => {
+  const response = await customFetch.patch(`/issues/${id}`, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+};
+
+export const deleteIssue = async (id: string) => {
+  const response = await customFetch.delete(`/issues/${id}`);
+  return response.data;
+};
+
+export const getStudentNotifications =
+  async (): Promise<GetNotificationsResponse> => {
+    const response = await customFetch.get("/notifications");
+    return response.data;
+  };
+
+export const markAllNotificationsRead = async () => {
+  const response = await customFetch.patch("/notifications/read-all");
+  return response.data;
+};

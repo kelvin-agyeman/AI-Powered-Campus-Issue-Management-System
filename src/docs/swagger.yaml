@@ -346,7 +346,7 @@ paths:
   # ==========================================
   # ISSUE ROUTES
   # ==========================================
-  /issue:
+  /issues:
     post:
       summary: Create Issue
       tags:
@@ -362,7 +362,7 @@ paths:
         "200":
           description: List of user issues
 
-  /issue/{id}:
+  /issues/{id}:
     parameters:
       - in: path
         name: id
@@ -394,7 +394,7 @@ paths:
         "200":
           description: Issue deleted
 
-  /issue/{id}/restore:
+  /issues/{id}/restore:
     parameters:
       - in: path
         name: id

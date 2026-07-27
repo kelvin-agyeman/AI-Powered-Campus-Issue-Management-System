@@ -43,7 +43,7 @@ app.set("trust proxy", 1);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", authenticateUser, userRouter);
 app.use(
-  "/api/v1/issue",
+  "/api/v1/issues",
   authenticateUser,
   authorizePermissions("student"),
   issueRouter,
