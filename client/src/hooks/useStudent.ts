@@ -10,6 +10,10 @@ import {
 import type {
   ApiErrorResponse,
   UpdateIssuePayload,
+  GetIssuesResponse,
+  SingleIssueResponse,
+  DeleteIssueResponse,
+  GetNotificationsResponse,
 } from "../types/student.types";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
@@ -18,7 +22,7 @@ import { useNavigate } from "react-router-dom";
 // --- ISSUES HOOKS ---
 
 export const useStudentIssues = () => {
-  return useQuery({
+  return useQuery<GetIssuesResponse, AxiosError<ApiErrorResponse>>({
     queryKey: ["student-issues"],
     queryFn: getStudentIssues,
   });
@@ -28,7 +32,11 @@ export const useCreateIssue = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  return useMutation<unknown, AxiosError<ApiErrorResponse>, FormData>({
+  return useMutation<
+    SingleIssueResponse,
+    AxiosError<ApiErrorResponse>,
+    FormData
+  >({
     mutationFn: createIssue,
     onSuccess: () => {
       toast.success("Issue reported successfully!");
@@ -48,32 +56,14 @@ export const useCreateIssue = () => {
 export const useUpdateIssue = (onSuccessCallback?: () => void) => {
   const queryClient = useQueryClient();
 
-  return useMutation<unknown, AxiosError<ApiErrorResponse>, UpdateIssuePayload>(
-    {
-      mutationFn: ({ id, formData }) => updateIssue(id, formData),
-      onSuccess: () => {
-        toast.success("Issue updated successfully!");
-        queryClient.invalidateQueries({ queryKey: ["student-issues"] });
-        if (onSuccessCallback) onSuccessCallback();
-      },
-      onError: (error) => {
-        toast.error(
-          error.response?.data?.msg ??
-            error.response?.data?.message ??
-            "Failed to update issue.",
-        );
-      },
-    },
-  );
-};
-
-export const useDeleteIssue = (onSuccessCallback?: () => void) => {
-  const queryClient = useQueryClient();
-
-  return useMutation<unknown, AxiosError<ApiErrorResponse>, string>({
-    mutationFn: deleteIssue,
+  return useMutation<
+    SingleIssueResponse,
+    AxiosError<ApiErrorResponse>,
+    UpdateIssuePayload
+  >({
+    mutationFn: ({ id, formData }) => updateIssue(id, formData),
     onSuccess: () => {
-      toast.success("Issue deleted successfully!");
+      toast.success("Issue updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["student-issues"] });
       if (onSuccessCallback) onSuccessCallback();
     },
@@ -81,16 +71,38 @@ export const useDeleteIssue = (onSuccessCallback?: () => void) => {
       toast.error(
         error.response?.data?.msg ??
           error.response?.data?.message ??
-          "Failed to delete issue.",
+          "Failed to update issue.",
       );
     },
   });
 };
 
+export const useDeleteIssue = (onSuccessCallback?: () => void) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<DeleteIssueResponse, AxiosError<ApiErrorResponse>, string>(
+    {
+      mutationFn: deleteIssue,
+      onSuccess: () => {
+        toast.success("Issue deleted successfully!");
+        queryClient.invalidateQueries({ queryKey: ["student-issues"] });
+        if (onSuccessCallback) onSuccessCallback();
+      },
+      onError: (error) => {
+        toast.error(
+          error.response?.data?.msg ??
+            error.response?.data?.message ??
+            "Failed to delete issue.",
+        );
+      },
+    },
+  );
+};
+
 // --- NOTIFICATIONS HOOKS ---
 
 export const useStudentNotifications = () => {
-  return useQuery({
+  return useQuery<GetNotificationsResponse, AxiosError<ApiErrorResponse>>({
     queryKey: ["student-notifications"],
     queryFn: getStudentNotifications,
   });
@@ -99,7 +111,7 @@ export const useStudentNotifications = () => {
 export const useMarkAllNotificationsRead = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<unknown, AxiosError<ApiErrorResponse>, void>({
+  return useMutation<void, AxiosError<ApiErrorResponse>, void>({
     mutationFn: markAllNotificationsRead,
     onSuccess: () => {
       toast.success("All notifications marked as read.");

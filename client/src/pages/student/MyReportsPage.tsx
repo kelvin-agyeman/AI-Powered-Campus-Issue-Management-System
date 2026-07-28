@@ -8,73 +8,51 @@ import {
   X,
   AlertTriangle,
   Upload,
+  Check,
 } from "lucide-react";
-
-// Updated the shape of our report data to include the new fields
-interface Report {
-  id: string;
-  title: string;
-  description: string;
-  building: string;
-  roomNumber: string;
-  date: string;
-  status: string;
-  photoFileName?: string;
-}
-
-const INITIAL_REPORTS: Report[] = [
-  {
-    id: "REP-001",
-    title: "Broken Air Conditioner",
-    description:
-      "The AC unit is making a loud rattling noise and is not blowing any cold air.",
-    building: "Library",
-    roomNumber: "Floor 2",
-    date: "Oct 24, 2026",
-    status: "In Progress",
-    photoFileName: "ac_unit_issue.jpg",
-  },
-  {
-    id: "REP-002",
-    title: "Flickering Lights",
-    description:
-      "Three fluorescent tubes are constantly flickering, causing eye strain.",
-    building: "Engineering Block",
-    roomNumber: "104",
-    date: "Oct 22, 2026",
-    status: "Resolved",
-  },
-  {
-    id: "REP-003",
-    title: "Water leak under main sink",
-    description:
-      "There is a pool of water forming under the sink. The pipe seems busted.",
-    building: "Science Facility 1",
-    roomNumber: "Lab 3B",
-    date: "July 21, 2026",
-    status: "Pending",
-    photoFileName: "leak_photo.png",
-  },
-];
+import {
+  useStudentIssues,
+  useUpdateIssue,
+  useDeleteIssue,
+} from "../../hooks/useStudent";
+import type { Issue } from "../../types/issue.types";
 
 export const MyReportsPage = () => {
-  const [reports, setReports] = useState<Report[]>(INITIAL_REPORTS);
+  const { data, isLoading } = useStudentIssues();
+  const issues = data?.issues || [];
 
   // Dropdown State
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const menuRef = useRef<HTMLTableDataCellElement>(null);
 
   // Modal States
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [selectedReport, setSelectedReport] = useState<Issue | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // Form States for Update (Excluding Title)
+  // Search & Filter state
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Form States for Update
   const [editDescription, setEditDescription] = useState("");
-  const [editBuilding, setEditBuilding] = useState("");
-  const [editRoomNumber, setEditRoomNumber] = useState("");
-  const [editPhotoName, setEditPhotoName] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editLocation, setEditLocation] = useState("");
+  const [editFiles, setEditFiles] = useState<File[]>([]);
+
+  // Track which existing images the user wants to keep
+  const [retainedImages, setRetainedImages] = useState<
+    { url: string; publicId: string }[]
+  >([]);
+
+  // React Query Mutations
+  const { mutate: updateIssue, isPending: isUpdating } = useUpdateIssue(() => {
+    setIsUpdateModalOpen(false);
+    setSelectedReport(null);
+  });
+
+  const { mutate: deleteIssue, isPending: isDeleting } = useDeleteIssue(() => {
+    setIsDeleteModalOpen(false);
+    setSelectedReport(null);
+  });
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -87,7 +65,7 @@ export const MyReportsPage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Prevent background scrolling when a modal is open
+  // Prevent background scrolling when modal is open
   useEffect(() => {
     if (isUpdateModalOpen || isDeleteModalOpen) {
       document.body.style.overflow = "hidden";
@@ -99,83 +77,105 @@ export const MyReportsPage = () => {
     };
   }, [isUpdateModalOpen, isDeleteModalOpen]);
 
-  const handleOpenUpdate = (report: Report) => {
+  const handleOpenUpdate = (report: Issue) => {
     setSelectedReport(report);
     setEditDescription(report.description);
-    setEditBuilding(report.building);
-    setEditRoomNumber(report.roomNumber);
-    setEditPhotoName(report.photoFileName || "");
+    setEditLocation(report.location);
+    setEditFiles([]);
+    // Load existing images into state so they can be managed
+    setRetainedImages(report.images || []);
     setActiveMenuId(null);
     setIsUpdateModalOpen(true);
   };
 
-  const handleOpenDelete = (report: Report) => {
+  const handleOpenDelete = (report: Issue) => {
     setSelectedReport(report);
     setActiveMenuId(null);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const selected = Array.from(e.target.files);
+      setEditFiles((prev) => [...prev, ...selected]);
+    }
+  };
+
+  const removeNewFile = (indexToRemove: number) => {
+    setEditFiles((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const removeRetainedImage = (publicId: string) => {
+    setRetainedImages((prev) =>
+      prev.filter((img) => img.publicId !== publicId),
+    );
   };
 
   const handleUpdateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedReport) return;
 
-    setIsSubmitting(true);
-    // Simulate API Call - backend would regenerate AI title based on description change here
-    setTimeout(() => {
-      setReports((prev) =>
-        prev.map((r) =>
-          r.id === selectedReport.id
-            ? {
-                ...r,
-                description: editDescription,
-                building: editBuilding,
-                roomNumber: editRoomNumber,
-                photoFileName: editPhotoName,
-              }
-            : r,
-        ),
-      );
-      setIsSubmitting(false);
-      setIsUpdateModalOpen(false);
-      setSelectedReport(null);
-    }, 800);
+    const formData = new FormData();
+    formData.append("description", editDescription.trim());
+    formData.append("location", editLocation.trim());
+
+    // Send the list of images we are keeping to the backend.
+    // The backend should parse this and delete any Cloudinary images that are missing.
+    formData.append("retainedImages", JSON.stringify(retainedImages));
+
+    // Append new files
+    editFiles.forEach((file) => {
+      formData.append("images", file);
+    });
+
+    updateIssue({ id: selectedReport._id, formData });
   };
 
   const handleDeleteConfirm = () => {
     if (!selectedReport) return;
-
-    setIsSubmitting(true);
-    // Simulate API Call
-    setTimeout(() => {
-      setReports((prev) => prev.filter((r) => r.id !== selectedReport.id));
-      setIsSubmitting(false);
-      setIsDeleteModalOpen(false);
-      setSelectedReport(null);
-    }, 800);
+    deleteIssue(selectedReport._id);
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: Issue["status"]) => {
     switch (status) {
-      case "Resolved":
+      case "resolved":
+      case "approved":
         return (
           <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">
-            Resolved
+            {status.replace(/_/g, " ").toUpperCase()}
           </span>
         );
-      case "In Progress":
+      case "in_progress":
+      case "assigned":
         return (
           <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-amber-600/20 ring-inset">
-            In Progress
+            {status.replace(/_/g, " ").toUpperCase()}
+          </span>
+        );
+      case "rejected":
+        return (
+          <span className="inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700 ring-1 ring-red-600/20 ring-inset">
+            REJECTED
           </span>
         );
       default:
         return (
           <span className="inline-flex items-center rounded-full bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-gray-500/10 ring-inset">
-            Pending
+            PENDING REVIEW
           </span>
         );
     }
   };
+
+  const filteredReports = issues.filter(
+    (report) =>
+      report.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.aiRecommendation?.title
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      report._id.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   return (
     <>
@@ -197,8 +197,10 @@ export const MyReportsPage = () => {
             </div>
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="block w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 text-sm placeholder-gray-500 focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
-              placeholder="Search reports by title or ID..."
+              placeholder="Search reports by title, location or ID..."
             />
           </div>
           <button className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none">
@@ -243,71 +245,81 @@ export const MyReportsPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
-                {reports.map((report) => (
-                  <tr
-                    key={report.id}
-                    className="transition-colors hover:bg-gray-50"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-900">
-                          {report.title}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          {report.id}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
-                      {report.building}
-                      {report.roomNumber ? `, ${report.roomNumber}` : ""}
-                    </td>
-                    <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
-                      {report.date}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(report.status)}
-                    </td>
-
-                    {/* Actions Column with Dropdown */}
+                {isLoading ? (
+                  <tr>
                     <td
-                      className="relative px-6 py-4 text-right text-sm font-medium whitespace-nowrap"
-                      ref={activeMenuId === report.id ? menuRef : null}
+                      colSpan={5}
+                      className="py-8 text-center text-sm text-gray-500"
                     >
-                      <button
-                        onClick={() =>
-                          setActiveMenuId(
-                            activeMenuId === report.id ? null : report.id,
-                          )
-                        }
-                        className="cursor-pointer rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:ring-2 focus:ring-red-500 focus:outline-none"
-                      >
-                        <MoreVertical size={18} />
-                      </button>
-
-                      {/* Dropdown Menu */}
-                      {activeMenuId === report.id && (
-                        <div className="ring-opacity-5 absolute top-10 right-8 z-10 w-40 rounded-md bg-white py-1 shadow-lg ring-1 ring-black focus:outline-none">
-                          <button
-                            onClick={() => handleOpenUpdate(report)}
-                            className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            <Edit size={14} className="text-gray-500" />
-                            Update Issue
-                          </button>
-                          <button
-                            onClick={() => handleOpenDelete(report)}
-                            className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                          >
-                            <Trash2 size={14} className="text-red-500" />
-                            Delete Issue
-                          </button>
-                        </div>
-                      )}
+                      Loading reports...
                     </td>
                   </tr>
-                ))}
-                {reports.length === 0 && (
+                ) : filteredReports.length > 0 ? (
+                  filteredReports.map((report) => (
+                    <tr
+                      key={report._id}
+                      className="transition-colors hover:bg-gray-50"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-900">
+                            {report.aiRecommendation?.title ||
+                              report.description.substring(0, 45) + "..."}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            ID: {report._id}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
+                        {report.location}
+                      </td>
+                      <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
+                        {new Date(report.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(report.status)}
+                      </td>
+
+                      {/* Actions Column */}
+                      <td
+                        className="relative px-6 py-4 text-right text-sm font-medium whitespace-nowrap"
+                        ref={activeMenuId === report._id ? menuRef : null}
+                      >
+                        <button
+                          onClick={() =>
+                            setActiveMenuId(
+                              activeMenuId === report._id ? null : report._id,
+                            )
+                          }
+                          className="cursor-pointer rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:ring-2 focus:ring-red-500 focus:outline-none"
+                        >
+                          <MoreVertical size={18} />
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {activeMenuId === report._id && (
+                          <div className="ring-opacity-5 absolute top-10 right-8 z-10 w-40 rounded-md bg-white py-1 shadow-lg ring-1 ring-black focus:outline-none">
+                            <button
+                              onClick={() => handleOpenUpdate(report)}
+                              className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              <Edit size={14} className="text-gray-500" />
+                              Update Issue
+                            </button>
+                            <button
+                              onClick={() => handleOpenDelete(report)}
+                              className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                            >
+                              <Trash2 size={14} className="text-red-500" />
+                              Delete Issue
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
                   <tr>
                     <td
                       colSpan={5}
@@ -328,13 +340,13 @@ export const MyReportsPage = () => {
       {/* Update Issue Modal */}
       {isUpdateModalOpen && selectedReport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white px-6 py-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 Update Report Information
               </h3>
               <button
-                onClick={() => !isSubmitting && setIsUpdateModalOpen(false)}
+                onClick={() => !isUpdating && setIsUpdateModalOpen(false)}
                 className="cursor-pointer rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
               >
                 <X size={20} />
@@ -342,6 +354,20 @@ export const MyReportsPage = () => {
             </div>
             <form onSubmit={handleUpdateSubmit} className="p-6">
               <div className="space-y-5">
+                {/* Location Field */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Location / Building
+                  </label>
+                  <input
+                    type="text"
+                    value={editLocation}
+                    onChange={(e) => setEditLocation(e.target.value)}
+                    className="w-full rounded-md border border-gray-300 px-4 py-2.5 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
+                    required
+                  />
+                </div>
+
                 {/* Description Field */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
@@ -356,55 +382,78 @@ export const MyReportsPage = () => {
                   />
                 </div>
 
-                {/* Location & Room Number Grid */}
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                {/* Display Existing Uploaded Images with Remove functionality */}
+                {retainedImages.length > 0 && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">
-                      Location / Building
+                      Currently Attached Images
                     </label>
-                    <input
-                      type="text"
-                      value={editBuilding}
-                      onChange={(e) => setEditBuilding(e.target.value)}
-                      className="w-full rounded-md border border-gray-300 px-4 py-2.5 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
-                      required
-                    />
+                    <div className="grid grid-cols-3 gap-2">
+                      {retainedImages.map((img, index) => (
+                        <div
+                          key={img.publicId || index}
+                          className="group relative overflow-hidden rounded-lg border border-gray-200"
+                        >
+                          <img
+                            src={img.url}
+                            alt={`Evidence ${index + 1}`}
+                            className="h-20 w-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeRetainedImage(img.publicId)}
+                            className="absolute top-1 right-1 flex cursor-pointer items-center justify-center rounded-full bg-red-100 p-1 text-red-600 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-200"
+                            title="Remove this image"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
-                      Room Number (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={editRoomNumber}
-                      onChange={(e) => setEditRoomNumber(e.target.value)}
-                      className="w-full rounded-md border border-gray-300 px-4 py-2.5 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
-                      required
-                    />
-                  </div>
-                </div>
+                )}
 
-                {/* Photo Evidence Upload (Frontend Mock) */}
+                {/* Photo Evidence Upload for New Files */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
-                    Photo Evidence
+                    Add New Photos (Optional)
                   </label>
-                  <div className="flex items-center gap-4">
-                    <label className="flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                  <div className="flex flex-col gap-3">
+                    <label className="flex w-fit cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                       <Upload size={16} className="text-gray-500" />
-                      Choose File
+                      Choose Files
                       <input
                         type="file"
                         className="hidden"
                         accept="image/*"
-                        onChange={(e) =>
-                          setEditPhotoName(e.target.files?.[0]?.name || "")
-                        }
+                        multiple
+                        onChange={handleFileChange}
                       />
                     </label>
-                    <span className="text-sm text-gray-500">
-                      {editPhotoName || "No new file chosen"}
-                    </span>
+
+                    {/* Preview Newly Selected Files */}
+                    {editFiles.length > 0 && (
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {editFiles.map((file, idx) => (
+                          <div
+                            key={`${file.name}-${idx}`}
+                            className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700"
+                          >
+                            <Check size={12} className="text-green-600" />
+                            <span className="max-w-35 truncate">
+                              {file.name}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeNewFile(idx)}
+                              className="ml-1 cursor-pointer text-gray-400 hover:text-red-600"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -413,22 +462,17 @@ export const MyReportsPage = () => {
                 <button
                   type="button"
                   onClick={() => setIsUpdateModalOpen(false)}
-                  disabled={isSubmitting}
+                  disabled={isUpdating}
                   className="cursor-pointer rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:opacity-70"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={
-                    isSubmitting ||
-                    !editDescription ||
-                    !editBuilding ||
-                    !editRoomNumber
-                  }
+                  disabled={isUpdating || !editDescription || !editLocation}
                   className="cursor-pointer rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:opacity-70"
                 >
-                  {isSubmitting ? "Saving..." : "Save Changes"}
+                  {isUpdating ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             </form>
@@ -450,11 +494,8 @@ export const MyReportsPage = () => {
                     Delete Report
                   </h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    Are you sure you want to delete{" "}
-                    <span className="font-medium text-gray-900">
-                      "{selectedReport.title}"
-                    </span>
-                    ? This action cannot be undone.
+                    Are you sure you want to delete this issue report? This
+                    action cannot be undone.
                   </p>
                 </div>
               </div>
@@ -462,7 +503,7 @@ export const MyReportsPage = () => {
                 <button
                   type="button"
                   onClick={() => setIsDeleteModalOpen(false)}
-                  disabled={isSubmitting}
+                  disabled={isDeleting}
                   className="cursor-pointer rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none disabled:opacity-70"
                 >
                   Cancel
@@ -470,10 +511,10 @@ export const MyReportsPage = () => {
                 <button
                   type="button"
                   onClick={handleDeleteConfirm}
-                  disabled={isSubmitting}
+                  disabled={isDeleting}
                   className="cursor-pointer rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:opacity-70"
                 >
-                  {isSubmitting ? "Deleting..." : "Yes, Delete"}
+                  {isDeleting ? "Deleting..." : "Yes, Delete"}
                 </button>
               </div>
             </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Outlet, useLocation, useLoaderData } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -12,13 +12,21 @@ import {
 } from "lucide-react";
 import CampusDeskWhiteLogo from "../assets/icons/CampusDesk-white-logo.png";
 import { useLogout } from "../hooks/useAuth";
+import { useCurrentUser } from "../hooks/useUser";
+import { Loading } from "../components/ui/Loading";
 
 export const StudentLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { mutate: logout, isPending } = useLogout();
-  const { user } = useLoaderData();
+  const { data, isLoading } = useCurrentUser();
+
+  const user = data?.user;
 
   const location = useLocation();
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   const navLinks = [
     { name: "Dashboard", path: "/student/dashboard", icon: LayoutDashboard },
@@ -131,11 +139,21 @@ export const StudentLayout = () => {
 
             <div className="flex items-center gap-3 border-l border-gray-200 pl-4">
               <div className="hidden text-right text-sm sm:block">
-                <p className="font-semibold text-gray-700">{user.fullName}</p>
+                <p className="font-semibold text-gray-700">
+                  {user?.fullName || ""}
+                </p>
                 <p className="text-xs text-gray-500">Student</p>
               </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-100 font-bold text-red-600">
-                {getInitials(user.fullName)}
+              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-red-100 font-bold text-red-600">
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.fullName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  getInitials(user?.fullName || "")
+                )}
               </div>
             </div>
           </div>

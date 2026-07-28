@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
+import { useOutletContext, useNavigate } from "react-router-dom";
 import {
-  User,
+  User as UserIcon,
   Save,
   Camera,
   Mail,
@@ -9,12 +10,26 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import type { StudentUser } from "../../types/user.types";
+import {
+  useUpdateUser,
+  useDeleteAvatar,
+  useUpdateEmail,
+  useSendEditDetailsRequest,
+} from "../../hooks/useUser";
 
 export const StudentProfilePage = () => {
-  const [isSavingProfile, setIsSavingProfile] = useState(false);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [isDeletingAvatar, setIsDeletingAvatar] = useState(false);
+  const { user } = useOutletContext<{ user: StudentUser }>();
+  const navigate = useNavigate();
+
+  // Local state for edits
+  const [fullName, setFullName] = useState(user?.fullName || "");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Derived state: Show local file preview if it exists, otherwise show server avatar
+  const displayAvatar = localPreview || user?.avatar;
 
   // Modal States
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
@@ -23,7 +38,7 @@ export const StudentProfilePage = () => {
   // Form States for Modals
   const [newEmail, setNewEmail] = useState("");
   const [newId, setNewId] = useState("");
-  const [isSubmittingModal, setIsSubmittingModal] = useState(false);
+  const [reason, setReason] = useState("");
 
   // Prevent background scrolling when a modal is open
   useEffect(() => {
@@ -37,57 +52,86 @@ export const StudentProfilePage = () => {
     };
   }, [isEmailModalOpen, isIdModalOpen]);
 
-  // --- Handlers for your specific backend flows ---
+  // --- Mutations ---
+  const { mutate: updateUser, isPending: isSavingProfile } = useUpdateUser(
+    () => {
+      // Clear local file state upon success.
+      // React Query invalidates the user, fetching the new avatar URL automatically.
+      setSelectedFile(null);
+      setLocalPreview(null);
+    },
+  );
+
+  const { mutate: deleteAvatar, isPending: isDeletingAvatar } = useDeleteAvatar(
+    () => {
+      setLocalPreview(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    },
+  );
+
+  const { mutate: updateEmail, isPending: isSubmittingEmail } = useUpdateEmail(
+    () => {
+      setIsEmailModalOpen(false);
+      setNewEmail("");
+    },
+  );
+
+  const { mutate: requestEditDetails, isPending: isSubmittingId } =
+    useSendEditDetailsRequest(() => {
+      setIsIdModalOpen(false);
+      setNewId("");
+      setReason("");
+      navigate("/login");
+    });
+
+  // --- Handlers ---
 
   const handleProfileSave = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSavingProfile(true);
-    // TODO: Send updated fullName and avatar to backend
-    setTimeout(() => setIsSavingProfile(false), 1000);
+    const formData = new FormData();
+    formData.append("fullName", fullName);
+
+    if (selectedFile) {
+      formData.append("avatar", selectedFile);
+    }
+
+    updateUser(formData);
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
+        setLocalPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
   const handleDeleteAvatar = () => {
-    setIsDeletingAvatar(true);
-    // TODO: Call your backend endpoint to delete the avatar
-    setTimeout(() => {
-      setAvatarPreview(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      setIsDeletingAvatar(false);
-    }, 800);
+    deleteAvatar();
   };
 
   const handleIdChangeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmittingModal(true);
-    // TODO: Trigger sendEditDetailsRequest for Institution ID
-    setTimeout(() => {
-      setIsSubmittingModal(false);
-      setIsIdModalOpen(false);
-      setNewId("");
-      // Typically you would log the user out here on success
-    }, 1500);
+    requestEditDetails({ newInstitutionId: newId, reason });
   };
 
   const handleEmailUpdateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmittingModal(true);
-    // TODO: Trigger updateEmail for personal email
-    setTimeout(() => {
-      setIsSubmittingModal(false);
-      setIsEmailModalOpen(false);
-      setNewEmail("");
-    }, 1500);
+    updateEmail({ newEmail: newEmail });
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
   };
 
   return (
@@ -107,7 +151,7 @@ export const StudentProfilePage = () => {
             className="border-b border-gray-100 p-6 sm:p-8"
           >
             <div className="mb-6 flex items-center gap-3 text-lg font-semibold text-gray-900">
-              <User size={20} className="text-red-600" />
+              <UserIcon size={20} className="text-red-600" />
               <h2>Profile</h2>
             </div>
 
@@ -115,15 +159,15 @@ export const StudentProfilePage = () => {
               {/* Avatar Upload & Delete */}
               <div className="flex flex-col items-center gap-3">
                 <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-gray-50 bg-gray-100 shadow-sm">
-                  {avatarPreview ? (
+                  {displayAvatar ? (
                     <img
-                      src={avatarPreview}
+                      src={displayAvatar}
                       alt="Avatar Preview"
                       className="h-full w-full object-cover"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-red-100 text-2xl font-bold text-red-600">
-                      SU
+                      {getInitials(user?.fullName || "")}
                     </div>
                   )}
                   <button
@@ -144,11 +188,10 @@ export const StudentProfilePage = () => {
 
                 <div className="flex flex-col items-center gap-1">
                   <span className="text-xs text-gray-500">JPG, PNG or GIF</span>
-                  {/* Delete Avatar Button */}
                   <button
                     type="button"
                     onClick={handleDeleteAvatar}
-                    disabled={isDeletingAvatar || !avatarPreview} // Adjust logic if user always has an avatar from DB
+                    disabled={isDeletingAvatar || !displayAvatar}
                     className="mt-1 flex cursor-pointer items-center gap-1.5 text-xs font-medium text-red-600 transition-colors hover:text-red-700 disabled:opacity-50"
                   >
                     <Trash2 size={12} />
@@ -165,7 +208,8 @@ export const StudentProfilePage = () => {
                   </label>
                   <input
                     type="text"
-                    defaultValue="Student User"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                     className="w-full rounded-md border border-gray-300 px-4 py-2.5 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
                     required
                   />
@@ -174,7 +218,10 @@ export const StudentProfilePage = () => {
                 <div className="flex justify-end pt-2">
                   <button
                     type="submit"
-                    disabled={isSavingProfile}
+                    disabled={
+                      isSavingProfile ||
+                      (!selectedFile && fullName === user?.fullName)
+                    }
                     className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-red-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:opacity-70"
                   >
                     {isSavingProfile ? "Saving..." : "Save Profile"}
@@ -201,7 +248,7 @@ export const StudentProfilePage = () => {
                     Personal Email Address
                   </p>
                   <p className="mt-1 text-sm text-gray-500">
-                    student.user@example.com
+                    {user?.email || "Not provided"}
                   </p>
                   <p className="mt-1 text-xs text-amber-600">
                     * Changing this will require you to verify your new email.
@@ -220,10 +267,12 @@ export const StudentProfilePage = () => {
               <div className="flex flex-col justify-between gap-4 rounded-lg border border-gray-200 p-4 sm:flex-row sm:items-center">
                 <div>
                   <p className="flex items-center gap-2 text-sm font-medium text-gray-900">
-                    <User size={16} className="text-gray-500" />
+                    <UserIcon size={16} className="text-gray-500" />
                     Institution ID
                   </p>
-                  <p className="mt-1 text-sm text-gray-500">10XXXXXX</p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {user?.institutionId || "Not provided"}
+                  </p>
                   <p className="mt-1 text-xs text-red-600">
                     * A successful ID change request will log you out of your
                     current session.
@@ -254,7 +303,7 @@ export const StudentProfilePage = () => {
                 Update Personal Email
               </h3>
               <button
-                onClick={() => !isSubmittingModal && setIsEmailModalOpen(false)}
+                onClick={() => !isSubmittingEmail && setIsEmailModalOpen(false)}
                 className="cursor-pointer rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
               >
                 <X size={20} />
@@ -282,17 +331,19 @@ export const StudentProfilePage = () => {
                 <button
                   type="button"
                   onClick={() => setIsEmailModalOpen(false)}
-                  disabled={isSubmittingModal}
+                  disabled={isSubmittingEmail}
                   className="cursor-pointer rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:opacity-70"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmittingModal || !newEmail}
+                  disabled={
+                    isSubmittingEmail || !newEmail || newEmail === user?.email
+                  }
                   className="cursor-pointer rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:opacity-70"
                 >
-                  {isSubmittingModal ? "Sending..." : "Send Verification"}
+                  {isSubmittingEmail ? "Sending..." : "Send Verification"}
                 </button>
               </div>
             </form>
@@ -309,7 +360,7 @@ export const StudentProfilePage = () => {
                 Request Institution ID Change
               </h3>
               <button
-                onClick={() => !isSubmittingModal && setIsIdModalOpen(false)}
+                onClick={() => !isSubmittingId && setIsIdModalOpen(false)}
                 className="cursor-pointer rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
               >
                 <X size={20} />
@@ -328,6 +379,19 @@ export const StudentProfilePage = () => {
                   className="w-full rounded-md border border-gray-300 px-4 py-2.5 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
                   required
                 />
+
+                <label className="mt-4 block text-sm font-medium text-gray-700">
+                  Reason for Change
+                </label>
+                <textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Briefly explain why you need to change your Institution ID"
+                  className="w-full resize-none rounded-md border border-gray-300 px-4 py-2.5 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
+                  rows={3}
+                  required
+                />
+
                 <div className="rounded-md bg-red-50 p-3">
                   <p className="text-xs text-red-800">
                     <strong>Warning:</strong> Upon successful submission and
@@ -340,17 +404,22 @@ export const StudentProfilePage = () => {
                 <button
                   type="button"
                   onClick={() => setIsIdModalOpen(false)}
-                  disabled={isSubmittingModal}
+                  disabled={isSubmittingId}
                   className="cursor-pointer rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:opacity-70"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmittingModal || !newId}
+                  disabled={
+                    isSubmittingId ||
+                    !newId ||
+                    newId === user?.institutionId ||
+                    !reason.trim()
+                  }
                   className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:opacity-70"
                 >
-                  {isSubmittingModal ? "Submitting..." : "Submit Request"}
+                  {isSubmittingId ? "Submitting..." : "Submit Request"}
                 </button>
               </div>
             </form>

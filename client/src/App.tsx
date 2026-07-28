@@ -10,7 +10,8 @@ import { RegisterPage } from "./pages/auth/RegisterPage";
 import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage";
 import { EmailVerificationPage } from "./pages/auth/EmailVerificationPage";
-import { CheckEmailPage } from "./pages/auth/CheckEmailPage"; // <-- Added Import
+import { CheckEmailPage } from "./pages/auth/CheckEmailPage";
+import { VerifyUpdatedEmailPage } from "./pages/auth/VerifyUpdatedEmailPage";
 
 // Student Pages & Layout
 import { StudentLayout } from "./layouts/StudentLayout";
@@ -80,6 +81,10 @@ const router = createBrowserRouter([
   {
     path: "/verify-email",
     element: <EmailVerificationPage />,
+  },
+  {
+    path: "verify-updated-email",
+    element: <VerifyUpdatedEmailPage />,
   },
 
   // Student Routes

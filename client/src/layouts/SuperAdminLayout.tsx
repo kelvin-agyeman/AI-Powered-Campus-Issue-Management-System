@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Outlet, useLoaderData, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -12,13 +12,21 @@ import {
 } from "lucide-react";
 import CampusDeskWhiteLogo from "../assets/icons/CampusDesk-white-logo.png";
 import { useLogout } from "../hooks/useAuth";
+import { useCurrentUser } from "../hooks/useUser";
+import { Loading } from "../components/ui/Loading";
 
 export const SuperAdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { mutate: logout, isPending } = useLogout();
-  const { user } = useLoaderData();
+  const { data, isLoading } = useCurrentUser();
+
+  const user = data?.user;
 
   const location = useLocation();
+
+  if (isLoading) {
+      return <Loading />;
+    }
 
   const navLinks = [
     {
@@ -128,11 +136,13 @@ export const SuperAdminLayout = () => {
           <div className="flex flex-1 items-center justify-end gap-4">
             <div className="flex items-center gap-3">
               <div className="hidden text-right text-sm sm:block">
-                <p className="font-semibold text-gray-700">{user.fullName}</p>
+                <p className="font-semibold text-gray-700">
+                  {user?.fullName || ""}
+                </p>
                 <p className="text-xs text-gray-500">Super Administrator</p>
               </div>
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 font-bold text-white shadow-sm">
-                {getInitials(user.fullName)}
+                {getInitials(user?.fullName || "")}
               </div>
             </div>
           </div>

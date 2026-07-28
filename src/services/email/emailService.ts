@@ -23,7 +23,7 @@ export const sendVerificationEmail = async ({
   origin,
   purpose,
 }: VerificationEmailPayload): Promise<unknown> => {
-  const verifyEmail = `${origin}/verify-email?token=${verificationToken}&email=${email}`;
+  const verifyEmail = `${origin}/${purpose === "Email Update" ? "verify-updated-email" : "verify-email"}?token=${verificationToken}&email=${email}`;
 
   const message = `
     <p>Please confirm your email by clicking on the following link:</p>

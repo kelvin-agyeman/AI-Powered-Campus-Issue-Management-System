@@ -1,22 +1,20 @@
-export interface AiRecommendation {
-  title: string;
-  category?: string;
-  priority?: string;
+import type { Issue } from "./issue.types";
+export type { Issue };
+
+export interface GetIssuesResponse {
+  success?: boolean;
+  issues: Issue[];
 }
 
-export interface Issue {
-  _id: string;
-  description: string;
-  location: string;
-  status:
-    | "pending_admin_review"
-    | "in_progress"
-    | "assigned"
-    | "resolved"
-    | "approved"
-    | "rejected";
-  createdAt: string;
-  aiRecommendation?: AiRecommendation;
+export interface SingleIssueResponse {
+  success?: boolean;
+  message?: string;
+  issue: Issue;
+}
+
+export interface DeleteIssueResponse {
+  success?: boolean;
+  message?: string;
 }
 
 export interface Notification {
@@ -31,10 +29,6 @@ export interface Notification {
 export interface ApiErrorResponse {
   msg?: string;
   message?: string;
-}
-
-export interface GetIssuesResponse {
-  issues: Issue[];
 }
 
 export interface GetNotificationsResponse {
