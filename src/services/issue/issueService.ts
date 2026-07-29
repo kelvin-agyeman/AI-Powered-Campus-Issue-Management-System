@@ -6,6 +6,7 @@ import {
 import { Types } from "mongoose";
 import * as aiService from "../ai/aiService";
 import { detectDuplicate } from "../duplicate/duplicateDetectionService";
+import cloudinary from "cloudinary";
 
 export const createIssue = async (inputData: IssueServiceCreateInput) => {
   let issue = await Issue.create({
@@ -167,4 +168,41 @@ export const restoreIssue = async (
     { isDeleted: false },
     { returnDocument: "after" },
   );
+};
+
+export const deleteIssueImage = async (
+  issueId: string | string[],
+  studentId: Types.ObjectId,
+  publicId: string,
+) => {
+  // 1. Verify the issue exists, belongs to the student, and is editable
+  const issue = await Issue.findOne({
+    _id: issueId,
+    reportedBy: studentId,
+    status: "pending_admin_review",
+    isDeleted: false,
+  });
+
+  if (!issue) {
+    throw new Error("Issue not found or cannot be modified.");
+  }
+
+  // 2. Delete the image from Cloudinary
+  try {
+    await cloudinary.v2.uploader.destroy(publicId);
+  } catch (error) {
+    console.error(`Failed to delete image ${publicId} from Cloudinary:`, error);
+    throw new Error("Failed to delete image from storage.");
+  }
+
+  // 3. Remove the image from the database using $pull
+  const updatedIssue = await Issue.findByIdAndUpdate(
+    issueId,
+    {
+      $pull: { images: { publicId: publicId } },
+    },
+    { returnDocument: "after", runValidators: true },
+  );
+
+  return updatedIssue;
 };

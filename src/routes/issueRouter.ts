@@ -2,7 +2,10 @@ import { Router } from "express";
 const router = Router();
 import validate from "../middleware/validationMiddleware";
 import { upload } from "../middleware/multerMiddleware";
-import { createIssueSchema, updateIssueSchema } from "../validators/issue.validator";
+import {
+  createIssueSchema,
+  updateIssueSchema,
+} from "../validators/issue.validator";
 import {
   createIssue,
   getSingleIssue,
@@ -10,6 +13,7 @@ import {
   updateIssue,
   deleteIssue,
   restoreIssue,
+  deleteImage,
 } from "../controllers/issueController";
 
 router
@@ -24,5 +28,7 @@ router
   .delete(deleteIssue);
 
 router.route("/:id/restore").patch(restoreIssue);
+
+router.route("/:issueId/images").delete(deleteImage);
 
 export default router;

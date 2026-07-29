@@ -4,6 +4,7 @@ import {
   createIssue,
   updateIssue,
   deleteIssue,
+  deleteIssueImage, // NEW
   getStudentNotifications,
   markAllNotificationsRead,
 } from "../services/student.service";
@@ -14,6 +15,7 @@ import type {
   SingleIssueResponse,
   DeleteIssueResponse,
   GetNotificationsResponse,
+  DeleteIssueImagePayload, // NEW
 } from "../types/student.types";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
@@ -97,6 +99,30 @@ export const useDeleteIssue = (onSuccessCallback?: () => void) => {
       },
     },
   );
+};
+
+// NEW: Hook to delete a single image
+export const useDeleteIssueImage = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    unknown,
+    AxiosError<ApiErrorResponse>,
+    DeleteIssueImagePayload
+  >({
+    mutationFn: deleteIssueImage,
+    onSuccess: () => {
+      toast.success("Image deleted successfully!");
+      queryClient.invalidateQueries({ queryKey: ["student-issues"] });
+    },
+    onError: (error) => {
+      toast.error(
+        error.response?.data?.msg ??
+          error.response?.data?.message ??
+          "Failed to delete image.",
+      );
+    },
+  });
 };
 
 // --- NOTIFICATIONS HOOKS ---

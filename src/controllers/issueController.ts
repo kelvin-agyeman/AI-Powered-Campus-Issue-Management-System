@@ -139,3 +139,41 @@ export const restoreIssue = async (req: Request, res: Response) => {
     issue: restoredIssue,
   });
 };
+
+export const deleteImage = async (req: Request, res: Response) => {
+  try {
+    const { issueId } = req.params;
+    const { publicId } = req.body; 
+    const studentId = req.user!._id; 
+
+    if (!publicId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Image publicId is required" 
+      });
+    }
+
+    const updatedIssue = await issueService.deleteIssueImage(
+      issueId, 
+      studentId, 
+      publicId
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Image deleted successfully",
+      data: updatedIssue
+    });
+
+  } catch (error: any) {
+    console.error("Delete image error:", error);
+    // If it's our custom error message from the service
+    if (error.message.includes("not found or cannot be modified")) {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+    return res.status(500).json({ 
+      success: false, 
+      message: "An error occurred while deleting the image" 
+    });
+  }
+};

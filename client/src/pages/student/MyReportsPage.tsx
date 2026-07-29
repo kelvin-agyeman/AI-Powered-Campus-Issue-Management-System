@@ -14,6 +14,7 @@ import {
   useStudentIssues,
   useUpdateIssue,
   useDeleteIssue,
+  useDeleteIssueImage,
 } from "../../hooks/useStudent";
 import type { Issue } from "../../types/issue.types";
 
@@ -54,6 +55,10 @@ export const MyReportsPage = () => {
     setSelectedReport(null);
   });
 
+  // NEW: Hook to delete single images on the fly
+  const { mutate: deleteIssueImage, isPending: isDeletingImage } =
+    useDeleteIssueImage();
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -82,7 +87,6 @@ export const MyReportsPage = () => {
     setEditDescription(report.description);
     setEditLocation(report.location);
     setEditFiles([]);
-    // Load existing images into state so they can be managed
     setRetainedImages(report.images || []);
     setActiveMenuId(null);
     setIsUpdateModalOpen(true);
@@ -105,9 +109,21 @@ export const MyReportsPage = () => {
     setEditFiles((prev) => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
+  // UPDATED: Now calls the backend endpoint directly
   const removeRetainedImage = (publicId: string) => {
-    setRetainedImages((prev) =>
-      prev.filter((img) => img.publicId !== publicId),
+    if (!selectedReport) return;
+
+    // Call the delete mutation
+    deleteIssueImage(
+      { issueId: selectedReport._id, publicId },
+      {
+        onSuccess: () => {
+          // If successful, remove it from the local UI state
+          setRetainedImages((prev) =>
+            prev.filter((img) => img.publicId !== publicId),
+          );
+        },
+      },
     );
   };
 
@@ -119,9 +135,7 @@ export const MyReportsPage = () => {
     formData.append("description", editDescription.trim());
     formData.append("location", editLocation.trim());
 
-    // Send the list of images we are keeping to the backend.
-    // The backend should parse this and delete any Cloudinary images that are missing.
-    formData.append("retainedImages", JSON.stringify(retainedImages));
+    // REMOVED the append of retainedImages, since they are managed individually now
 
     // Append new files
     editFiles.forEach((file) => {
@@ -402,7 +416,8 @@ export const MyReportsPage = () => {
                           <button
                             type="button"
                             onClick={() => removeRetainedImage(img.publicId)}
-                            className="absolute top-1 right-1 flex cursor-pointer items-center justify-center rounded-full bg-red-100 p-1 text-red-600 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-200"
+                            disabled={isDeletingImage} // UPDATED: Disable button while deleting
+                            className="absolute top-1 right-1 flex cursor-pointer items-center justify-center rounded-full bg-red-100 p-1 text-red-600 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-200 disabled:opacity-50"
                             title="Remove this image"
                           >
                             <X size={14} />

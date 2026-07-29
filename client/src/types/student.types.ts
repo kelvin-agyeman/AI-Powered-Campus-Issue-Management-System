@@ -44,6 +44,11 @@ export interface UpdateIssuePayload {
   formData: FormData;
 }
 
+export interface DeleteIssueImagePayload {
+  issueId: string;
+  publicId: string;
+}
+
 export interface StudentUser {
   _id: string;
   fullName: string;

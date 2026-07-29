@@ -2,6 +2,7 @@ import customFetch from "../utils/customFetch";
 import type {
   GetIssuesResponse,
   GetNotificationsResponse,
+  DeleteIssueImagePayload,
 } from "../types/student.types";
 
 export const getStudentIssues = async (): Promise<GetIssuesResponse> => {
@@ -25,6 +26,14 @@ export const updateIssue = async (id: string, data: FormData) => {
 
 export const deleteIssue = async (id: string) => {
   const response = await customFetch.delete(`/issues/${id}`);
+  return response.data;
+};
+
+// NEW: Service to delete a single image
+export const deleteIssueImage = async ({ issueId, publicId }: DeleteIssueImagePayload) => {
+  const response = await customFetch.delete(`/issues/${issueId}/images`, {
+    data: { publicId },
+  });
   return response.data;
 };
 
