@@ -1,7 +1,6 @@
 import customFetch from "../utils/customFetch";
 import type {
   GetIssuesResponse,
-  GetNotificationsResponse,
   DeleteIssueImagePayload,
 } from "../types/student.types";
 
@@ -34,16 +33,5 @@ export const deleteIssueImage = async ({ issueId, publicId }: DeleteIssueImagePa
   const response = await customFetch.delete(`/issues/${issueId}/images`, {
     data: { publicId },
   });
-  return response.data;
-};
-
-export const getStudentNotifications =
-  async (): Promise<GetNotificationsResponse> => {
-    const response = await customFetch.get("/notifications");
-    return response.data;
-  };
-
-export const markAllNotificationsRead = async () => {
-  const response = await customFetch.patch("/notifications/read-all");
   return response.data;
 };

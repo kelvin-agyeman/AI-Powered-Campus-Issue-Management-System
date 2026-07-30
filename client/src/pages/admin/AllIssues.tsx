@@ -1,6 +1,55 @@
-import { Filter, Search, Download } from "lucide-react";
+import { useState } from "react";
+import { Filter, Search, MoreVertical, X, UserPlus } from "lucide-react";
+import {
+  useAllIssues,
+  useAssignIssue,
+  useStaffByDepartment,
+} from "../../hooks/useAdmin";
+import type { PopulatedUser, Issue } from "../../types/issue.types";
+import type { User } from "../../types/user.types";
+import {
+  ASSIGNABLE_DEPARTMENTS,
+  PRIORITY_LEVELS,
+} from "../../../../src/utils/constants";
 
 export const AllIssuesPage = () => {
+  const [filters, setFilters] = useState({
+    status: "",
+    assignedDepartment: "",
+    priority: "",
+    searchQuery: "",
+  });
+
+  const { data, isLoading } = useAllIssues(filters);
+
+  // FIX 1: Provide a fallback empty array so `issues` is never undefined
+  const issues: Issue[] = data?.data?.issues || [];
+
+  // Assignment Modal State for the list view
+  const [issueToAssign, setIssueToAssign] = useState<Issue | null>(null);
+  const [selectedStaffId, setSelectedStaffId] = useState("");
+
+  // Fetch staff for the modal based on the selected issue's department
+  const { data: staffData, isLoading: isLoadingStaff } = useStaffByDepartment(
+    issueToAssign?.assignedDepartment ||
+      issueToAssign?.aiRecommendation?.department,
+  );
+  const staffMembers = staffData?.data || [];
+
+  const { mutate: assignIssue, isPending: isAssigning } = useAssignIssue(() => {
+    setIssueToAssign(null);
+    setSelectedStaffId("");
+  });
+
+  const handleAssignConfirm = () => {
+    if (issueToAssign && selectedStaffId) {
+      assignIssue({
+        id: issueToAssign._id,
+        data: { staffId: selectedStaffId },
+      });
+    }
+  };
+
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -12,9 +61,9 @@ export const AllIssuesPage = () => {
             View and filter all reported issues across campus.
           </p>
         </div>
-        <button className="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
+        {/* <button className="flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
           <Download size={16} /> Export CSV
-        </button>
+        </button> */}
       </div>
 
       {/* Filter Bar */}
@@ -27,37 +76,53 @@ export const AllIssuesPage = () => {
             />
             <input
               type="text"
-              placeholder="Search by Reporter or ID..."
-              className="w-full rounded-md border border-gray-300 py-2 pr-4 pl-10 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
+              placeholder="Search..."
+              value={filters.searchQuery}
+              onChange={(e) =>
+                setFilters({ ...filters, searchQuery: e.target.value })
+              }
+              className="w-full rounded-md border border-gray-300 py-2 pr-4 pl-10 text-sm outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
             />
           </div>
-
-          {/* Filter Dropdowns mapped to adminService.ts query params */}
-          <select className="rounded-md border border-gray-300 py-2 pr-8 pl-3 text-sm outline-none focus:border-red-500">
+          <select
+            value={filters.status}
+            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+            className="cursor-pointer rounded-md border border-gray-300 py-2 pr-8 pl-3 text-sm outline-none focus:border-red-500"
+          >
             <option value="">All Statuses</option>
             <option value="pending_admin_review">Pending</option>
             <option value="approved">Approved</option>
             <option value="assigned">Assigned</option>
+            <option value="in_progress">In Progress</option>
             <option value="resolved">Resolved</option>
             <option value="rejected">Rejected</option>
           </select>
-
-          <select className="rounded-md border border-gray-300 py-2 pr-8 pl-3 text-sm outline-none focus:border-red-500">
+          <select
+            value={filters.assignedDepartment}
+            onChange={(e) =>
+              setFilters({ ...filters, assignedDepartment: e.target.value })
+            }
+            className="cursor-pointer rounded-md border border-gray-300 py-2 pr-8 pl-3 text-sm outline-none focus:border-red-500"
+          >
             <option value="">All Departments</option>
-            <option value="ESTATES">Estates</option>
-            <option value="ICT">ICT</option>
-            <option value="MAINTENANCE">Maintenance</option>
+            {ASSIGNABLE_DEPARTMENTS.map((department) => {
+              return <option value={department}>{department}</option>;
+            })}
           </select>
-
-          <select className="rounded-md border border-gray-300 py-2 pr-8 pl-3 text-sm outline-none focus:border-red-500">
+          <select
+            value={filters.priority}
+            onChange={(e) =>
+              setFilters({ ...filters, priority: e.target.value })
+            }
+            className="cursor-pointer rounded-md border border-gray-300 py-2 pr-8 pl-3 text-sm outline-none focus:border-red-500"
+          >
             <option value="">Priority</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
+            {PRIORITY_LEVELS.map((priority) => {
+              return <option value={priority}>{priority}</option>;
+            })}
           </select>
-
-          <button className="flex items-center gap-2 rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200">
-            <Filter size={16} /> More Filters
+          <button className="flex cursor-pointer items-center gap-2 rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200">
+            <Filter size={16} /> Filters
           </button>
         </div>
       </div>
@@ -82,43 +147,165 @@ export const AllIssuesPage = () => {
               <th className="px-6 py-4 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
                 Status
               </th>
+              <th className="px-6 py-4 text-center text-xs font-medium tracking-wider text-gray-500 uppercase">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">
-            {/* Map over getAllIssues() response here */}
-            <tr className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900">
-                  #ISS-8923
-                </div>
-                <div className="text-sm text-gray-500">Today, 10:23 AM</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900">
-                  Jane Doe
-                </div>
-                <div className="text-sm text-gray-500">
-                  jane@st.knust.edu.gh
-                </div>
-              </td>
-              <td className="px-6 py-4">
-                <div className="text-sm text-gray-900">Broken Chair in LT1</div>
-                <div className="line-clamp-1 text-xs text-gray-500">
-                  The front row seat is completely detached.
-                </div>
-              </td>
-              <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
-                Estates
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="inline-flex rounded-full bg-blue-100 px-2 text-xs leading-5 font-semibold text-blue-800">
-                  Assigned
-                </span>
-              </td>
-            </tr>
+            {isLoading ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="p-8 text-center text-sm text-gray-500"
+                >
+                  Loading issues...
+                </td>
+              </tr>
+            ) : issues.length > 0 ? (
+              // FIX 2: Replaced 'any' with the 'Issue' type you imported at the top
+              issues.map((issue: Issue) => {
+                const reporter = issue.reportedBy as PopulatedUser;
+                return (
+                  <tr key={issue._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="max-w-32 truncate text-sm font-medium text-gray-900">
+                        {issue._id}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {new Date(issue.createdAt).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {reporter?.fullName || "N/A"}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {reporter?.email || ""}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {issue.aiRecommendation?.title || "Report"}
+                      </div>
+                      <div className="line-clamp-1 text-xs text-gray-500">
+                        {issue.description}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500 capitalize">
+                      {issue.assignedDepartment ||
+                        issue.aiRecommendation?.department ||
+                        "Unassigned"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-800">
+                        {issue.status.replace(/_/g, " ").toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center whitespace-nowrap">
+                      {issue.status === "approved" && (
+                        <button
+                          onClick={() => setIssueToAssign(issue)}
+                          className="cursor-pointer rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                          title="Assign Staff"
+                        >
+                          <MoreVertical size={20} />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="p-8 text-center text-sm text-gray-500"
+                >
+                  No issues found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      {issueToAssign && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 p-4 backdrop-blur-sm">
+          <div className="animate-in zoom-in-95 w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <UserPlus size={20} className="text-indigo-600" />
+                <h3 className="text-lg font-bold text-gray-900">
+                  Assign Staff Member
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  setIssueToAssign(null);
+                  setSelectedStaffId("");
+                }}
+                className="cursor-pointer text-gray-400 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <p className="mb-3 text-sm text-gray-500">
+                  Assigning issue{" "}
+                  <span className="font-medium text-gray-900">
+                    #{issueToAssign._id.slice(-6)}
+                  </span>{" "}
+                  to the{" "}
+                  <span className="font-medium text-gray-900 capitalize">
+                    {issueToAssign.assignedDepartment ||
+                      issueToAssign.aiRecommendation?.department}
+                  </span>{" "}
+                  department.
+                </p>
+                <select
+                  value={selectedStaffId}
+                  onChange={(e) => setSelectedStaffId(e.target.value)}
+                  disabled={isLoadingStaff}
+                  className="w-full rounded-md border border-gray-300 p-3 text-sm outline-none focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100"
+                >
+                  <option value="">
+                    {isLoadingStaff
+                      ? "Loading staff..."
+                      : "Select a staff member..."}
+                  </option>
+                  {staffMembers.map((staff: User) => (
+                    <option key={staff._id} value={staff._id}>
+                      {staff.fullName} ({staff._id})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    setIssueToAssign(null);
+                    setSelectedStaffId("");
+                  }}
+                  className="flex-1 cursor-pointer rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAssignConfirm}
+                  disabled={isAssigning || !selectedStaffId}
+                  className="flex-1 cursor-pointer rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {isAssigning ? "Assigning..." : "Assign Task"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

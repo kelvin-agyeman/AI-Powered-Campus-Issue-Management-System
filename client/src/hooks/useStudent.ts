@@ -5,8 +5,6 @@ import {
   updateIssue,
   deleteIssue,
   deleteIssueImage, // NEW
-  getStudentNotifications,
-  markAllNotificationsRead,
 } from "../services/student.service";
 import type {
   ApiErrorResponse,
@@ -14,7 +12,6 @@ import type {
   GetIssuesResponse,
   SingleIssueResponse,
   DeleteIssueResponse,
-  GetNotificationsResponse,
   DeleteIssueImagePayload, // NEW
 } from "../types/student.types";
 import { AxiosError } from "axios";
@@ -120,34 +117,6 @@ export const useDeleteIssueImage = () => {
         error.response?.data?.msg ??
           error.response?.data?.message ??
           "Failed to delete image.",
-      );
-    },
-  });
-};
-
-// --- NOTIFICATIONS HOOKS ---
-
-export const useStudentNotifications = () => {
-  return useQuery<GetNotificationsResponse, AxiosError<ApiErrorResponse>>({
-    queryKey: ["student-notifications"],
-    queryFn: getStudentNotifications,
-  });
-};
-
-export const useMarkAllNotificationsRead = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation<void, AxiosError<ApiErrorResponse>, void>({
-    mutationFn: markAllNotificationsRead,
-    onSuccess: () => {
-      toast.success("All notifications marked as read.");
-      queryClient.invalidateQueries({ queryKey: ["student-notifications"] });
-    },
-    onError: (error) => {
-      toast.error(
-        error.response?.data?.msg ??
-          error.response?.data?.message ??
-          "Failed to update notifications.",
       );
     },
   });

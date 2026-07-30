@@ -25,8 +25,8 @@ export const SuperAdminLayout = () => {
   const location = useLocation();
 
   if (isLoading) {
-      return <Loading />;
-    }
+    return <Loading />;
+  }
 
   const navLinks = [
     {
@@ -141,8 +141,16 @@ export const SuperAdminLayout = () => {
                 </p>
                 <p className="text-xs text-gray-500">Super Administrator</p>
               </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 font-bold text-white shadow-sm">
-                {getInitials(user?.fullName || "")}
+              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-gray-900 font-bold text-white shadow-sm">
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.fullName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  getInitials(user?.fullName || "")
+                )}
               </div>
             </div>
           </div>
@@ -150,7 +158,7 @@ export const SuperAdminLayout = () => {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
-          <Outlet />
+          <Outlet context={{ user }} />
         </main>
       </div>
     </div>

@@ -140,8 +140,16 @@ export const StaffLayout = () => {
                   {user?.department || ""}
                 </p>
               </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-800 font-bold text-white">
-                {getInitials(user?.fullName || "")}
+              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-gray-800 font-bold text-white">
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.fullName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  getInitials(user?.fullName || "")
+                )}
               </div>
             </div>
           </div>
@@ -149,7 +157,7 @@ export const StaffLayout = () => {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <Outlet />
+          <Outlet context={{ user }} />
         </main>
       </div>
     </div>

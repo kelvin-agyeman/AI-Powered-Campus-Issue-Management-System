@@ -48,12 +48,19 @@ export type IssueStatus =
 
 export type AdminDecision = "approved" | "modified" | "rejected";
 
+export interface PopulatedUser {
+  _id: string;
+  fullName: string;
+  email: string;
+  institutionId: string;
+}
+
 export interface Issue {
   _id: string;
   description: string;
   location: string;
   images: IssueImage[];
-  reportedBy: string;
+  reportedBy: string | PopulatedUser;
   aiModel?: string;
   aiRecommendation?: AiRecommendation;
   resolutionSupport?: ResolutionSupport;

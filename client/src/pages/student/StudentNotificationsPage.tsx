@@ -1,8 +1,8 @@
 import { CheckCircle, Clock, AlertTriangle, Info, CheckCheck } from "lucide-react";
-import { useStudentNotifications, useMarkAllNotificationsRead } from "../../hooks/useStudent";
+import { useUserNotifications, useMarkAllNotificationsRead } from "../../hooks/useNotifications";
 
 export const StudentNotificationsPage = () => {
-  const { data, isLoading } = useStudentNotifications();
+  const { data, isLoading } = useUserNotifications();
   const notifications = data?.data.notifications || [];
   
   const { mutate: markAllRead, isPending: isMarking } = useMarkAllNotificationsRead();

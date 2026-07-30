@@ -66,7 +66,7 @@ export const acceptAssignment = async (
 
   await issue.save();
 
-  await notificationService.notifyAssignmentAccepted(issue, issue.reportedBy);
+  await notificationService.notifyAssignmentAccepted(issue, staffId);
 
   return issue;
 };

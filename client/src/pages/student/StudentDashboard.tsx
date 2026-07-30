@@ -18,13 +18,7 @@ export const StudentDashboard = () => {
     },
     {
       title: "In Progress",
-      value: issues
-        .filter((i) =>
-          ["pending_admin_review", "in_progress", "assigned"].includes(
-            i.status,
-          ),
-        )
-        .length.toString(),
+      value: issues.filter((i) => i.status === "in_progress").length.toString(),
       icon: Clock,
       color: "text-amber-600",
       bgColor: "bg-amber-100",

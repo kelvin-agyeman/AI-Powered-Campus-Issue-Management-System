@@ -18,6 +18,14 @@ export interface StudentUser extends User {
   role: "student";
 }
 
+export interface AdminUser extends User {
+  role: "admin";
+}
+
+export interface StaffUser extends User {
+  role: "staff";
+}
+
 export interface GetCurrentUserResponse {
   user: User;
 }
