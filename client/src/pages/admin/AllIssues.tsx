@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Filter, Search, MoreVertical, X, UserPlus } from "lucide-react";
+import {
+  Filter,
+  Search,
+  MoreVertical,
+  X,
+  UserPlus,
+  Activity,
+} from "lucide-react"; // <-- Added Activity
+import { Link } from "react-router-dom"; // <-- Added Link
 import {
   useAllIssues,
   useAssignIssue,
@@ -22,14 +30,11 @@ export const AllIssuesPage = () => {
 
   const { data, isLoading } = useAllIssues(filters);
 
-  // FIX 1: Provide a fallback empty array so `issues` is never undefined
   const issues: Issue[] = data?.data?.issues || [];
 
-  // Assignment Modal State for the list view
   const [issueToAssign, setIssueToAssign] = useState<Issue | null>(null);
   const [selectedStaffId, setSelectedStaffId] = useState("");
 
-  // Fetch staff for the modal based on the selected issue's department
   const { data: staffData, isLoading: isLoadingStaff } = useStaffByDepartment(
     issueToAssign?.assignedDepartment ||
       issueToAssign?.aiRecommendation?.department,
@@ -61,9 +66,6 @@ export const AllIssuesPage = () => {
             View and filter all reported issues across campus.
           </p>
         </div>
-        {/* <button className="flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
-          <Download size={16} /> Export CSV
-        </button> */}
       </div>
 
       {/* Filter Bar */}
@@ -106,7 +108,11 @@ export const AllIssuesPage = () => {
           >
             <option value="">All Departments</option>
             {ASSIGNABLE_DEPARTMENTS.map((department) => {
-              return <option value={department}>{department}</option>;
+              return (
+                <option key={department} value={department}>
+                  {department}
+                </option>
+              );
             })}
           </select>
           <select
@@ -118,7 +124,11 @@ export const AllIssuesPage = () => {
           >
             <option value="">Priority</option>
             {PRIORITY_LEVELS.map((priority) => {
-              return <option value={priority}>{priority}</option>;
+              return (
+                <option key={priority} value={priority}>
+                  {priority}
+                </option>
+              );
             })}
           </select>
           <button className="flex cursor-pointer items-center gap-2 rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200">
@@ -163,7 +173,6 @@ export const AllIssuesPage = () => {
                 </td>
               </tr>
             ) : issues.length > 0 ? (
-              // FIX 2: Replaced 'any' with the 'Issue' type you imported at the top
               issues.map((issue: Issue) => {
                 const reporter = issue.reportedBy as PopulatedUser;
                 return (
@@ -203,15 +212,31 @@ export const AllIssuesPage = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center whitespace-nowrap">
-                      {issue.status === "approved" && (
-                        <button
-                          onClick={() => setIssueToAssign(issue)}
-                          className="cursor-pointer rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
-                          title="Assign Staff"
-                        >
-                          <MoreVertical size={20} />
-                        </button>
-                      )}
+                      <div className="flex items-center justify-center gap-2">
+                        {/* Assign Issue Action */}
+                        {issue.status === "approved" && (
+                          <button
+                            onClick={() => setIssueToAssign(issue)}
+                            className="cursor-pointer rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                            title="Assign Staff"
+                          >
+                            <MoreVertical size={20} />
+                          </button>
+                        )}
+
+                        {/* NEW: View Progress Action */}
+                        {["assigned", "in_progress", "resolved"].includes(
+                          issue.status,
+                        ) && (
+                          <Link
+                            to={`/admin/issues/${issue._id}/progress`}
+                            className="cursor-pointer rounded-full p-2 text-emerald-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
+                            title="View Progress Timeline"
+                          >
+                            <Activity size={20} />
+                          </Link>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -230,6 +255,7 @@ export const AllIssuesPage = () => {
         </table>
       </div>
 
+      {/* Assignment Modal (Remains the Same) */}
       {issueToAssign && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 p-4 backdrop-blur-sm">
           <div className="animate-in zoom-in-95 w-full max-w-md rounded-xl bg-white p-6 shadow-xl">

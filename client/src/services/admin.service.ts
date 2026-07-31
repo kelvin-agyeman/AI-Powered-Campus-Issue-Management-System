@@ -66,3 +66,8 @@ export const getIssueDuplicates = async (id: string) => {
   const response = await customFetch.get(`/admin/issues/${id}/duplicates`);
   return response.data;
 };
+
+export const getIssueProgress = async (id: string) => {
+  const response = await customFetch.get(`/admin/issues/${id}/progress`);
+  return response.data;
+};

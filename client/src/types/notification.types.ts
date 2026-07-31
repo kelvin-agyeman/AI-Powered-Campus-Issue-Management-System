@@ -5,6 +5,7 @@ export interface Notification {
   type: string;
   isRead: boolean;
   createdAt: string;
+  relatedIssue: string;
 }
 
 export interface ApiErrorResponse {

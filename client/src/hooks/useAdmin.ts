@@ -9,6 +9,7 @@ import {
   assignIssue,
   getIssueDuplicates,
   getStaffByDepartment,
+  getIssueProgress,
 } from "../services/admin.service";
 import type { ApiErrorResponse } from "../types/user.types";
 import { AxiosError } from "axios";
@@ -156,5 +157,13 @@ export const useStaffByDepartment = (department?: string) => {
     queryKey: ["staff", department],
     queryFn: () => getStaffByDepartment(department!),
     enabled: !!department,
+  });
+};
+
+export const useIssueProgress = (id: string) => {
+  return useQuery({
+    queryKey: ["admin-issue-progress", id],
+    queryFn: () => getIssueProgress(id),
+    enabled: !!id,
   });
 };

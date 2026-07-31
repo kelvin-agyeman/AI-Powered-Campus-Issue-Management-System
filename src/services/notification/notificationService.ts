@@ -217,3 +217,33 @@ export const sendSystemBroadcast = async (broadcastData: {
     }),
   );
 };
+
+export const notifyProgressUpdated = async (
+  issue: any,
+  staff: any,
+  note: string,
+) => {
+  const issueTitle = issue.aiRecommendation?.title || "Reported Issue";
+
+  // Find the admin who assigned the issue to notify them
+  const admin = await User.findById(issue.assignedBy);
+  if (!admin) return;
+
+  if (!admin.email) return;
+
+  await createNotification(
+    admin._id,
+    "Progress Update",
+    `${staff.fullName} updated progress on "${issueTitle}".`,
+    "PROGRESS_UPDATE",
+    issue._id,
+  );
+
+  await emailService.sendProgressUpdatedEmail(
+    admin.email,
+    admin.fullName,
+    issueTitle,
+    staff.fullName,
+    note,
+  );
+};

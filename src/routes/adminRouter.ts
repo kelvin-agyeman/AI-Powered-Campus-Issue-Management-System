@@ -10,6 +10,7 @@ import {
   assignStaff,
   getIssueDuplicates,
   getStaffByDepartment,
+  getIssueProgressUpdates,
 } from "../controllers/adminController";
 import {
   modifyIssueSchema,
@@ -41,5 +42,7 @@ router
   .patch(validate(assignStaffSchema), assignStaff);
 
 router.route("/staff/:department").get(getStaffByDepartment);
+
+router.route("/issues/:id/progress").get(getIssueProgressUpdates);
 
 export default router;

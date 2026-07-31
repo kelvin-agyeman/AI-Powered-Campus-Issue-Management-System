@@ -25,7 +25,7 @@ export interface ProgressUpdate {
   _id?: string;
   note: string;
   status?: IssueStatus;
-  updatedBy: string;
+  updatedBy: string | PopulatedUser;
   createdAt: string;
 }
 
@@ -53,6 +53,7 @@ export interface PopulatedUser {
   fullName: string;
   email: string;
   institutionId: string;
+  avatar?: string;
 }
 
 export interface Issue {

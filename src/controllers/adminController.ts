@@ -135,3 +135,25 @@ export const getStaffByDepartment = async (
     });
   }
 };
+
+export const getIssueProgressUpdates = async (
+  req: Request<{ id: string }>,
+  res: Response,
+) => {
+  try {
+    const issue = await adminService.getIssueProgressUpdates(req.params.id);
+
+    if (!issue) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ success: false, message: "Issue not found" });
+    }
+
+    res.status(StatusCodes.OK).json({ success: true, data: issue });
+  } catch (error: any) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: error.message || "Failed to fetch progress updates",
+    });
+  }
+};

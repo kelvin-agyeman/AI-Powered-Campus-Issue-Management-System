@@ -1,4 +1,5 @@
 import { CheckCircle, Clock, AlertTriangle, Info, CheckCheck } from "lucide-react";
+import { Link } from "react-router-dom"; // <-- Added import
 import { useUserNotifications, useMarkAllNotificationsRead } from "../../hooks/useNotifications";
 
 export const AdminNotificationsPage = () => {
@@ -14,6 +15,7 @@ export const AdminNotificationsPage = () => {
         return <CheckCircle className="text-green-500" size={20} />;
       case "ISSUE_IN_PROGRESS":
       case "ISSUE_ASSIGNED":
+      case "PROGRESS_UPDATE":
         return <Clock className="text-blue-500" size={20} />;
       case "ISSUE_REJECTED":
         return <AlertTriangle className="text-amber-500" size={20} />;
@@ -67,6 +69,16 @@ export const AdminNotificationsPage = () => {
                       </span>
                     </div>
                     <p className="text-sm text-gray-600">{notification.message}</p>
+                    
+                    {/* NEW: View Progress Link */}
+                    {notification.type === "PROGRESS_UPDATE" && (
+                      <Link
+                        to={`/admin/issues/${notification.relatedIssue}/progress`}
+                        className="mt-2 inline-flex items-center rounded-md bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100"
+                      >
+                        View Progress
+                      </Link>
+                    )}
                   </div>
                 </div>
               </li>

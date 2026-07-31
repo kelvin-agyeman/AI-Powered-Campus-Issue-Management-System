@@ -151,3 +151,23 @@ export const sendBroadcastEmail = async (
     `,
   });
 };
+
+export const sendProgressUpdatedEmail = async (
+  email: string,
+  name: string,
+  issueTitle: string,
+  staffName: string,
+  note: string,
+) => {
+  await sendEmail({
+    to: email,
+    subject: "New Issue Progress Update",
+    html: `
+      <h2>Hello ${name},</h2>
+      <p><strong>${staffName}</strong> has posted a new progress update for the issue: <strong>"${issueTitle}"</strong>.</p>
+      <p><strong>Update Note:</strong></p>
+      <p style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #10B981;">${note}</p>
+      <p>Please log in to your dashboard to view the full progress timeline.</p>
+    `,
+  });
+};

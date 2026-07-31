@@ -1,4 +1,5 @@
 import Issue from "../../models/Issue";
+import User from "../../models/User";
 import { Types } from "mongoose";
 import {
   UpdateProgressInput,
@@ -102,6 +103,12 @@ export const updateProgress = async (
   } as any);
 
   await issue.save();
+
+  const staff = await User.findById(staffId);
+  if (staff) {
+    await notificationService.notifyProgressUpdated(issue, staff, data.note);
+  }
+
   return issue;
 };
 

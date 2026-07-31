@@ -228,3 +228,15 @@ export const getStaffByDepartment = async (department: KNUST_DEPARTMENTS) => {
 
   return staffMembers;
 };
+
+export const getIssueProgressUpdates = async (issueId: string) => {
+  const issue = await Issue.findById(issueId)
+    .populate("progressUpdates.updatedBy", "fullName email avatar")
+    .select("progressUpdates aiRecommendation status createdAt");
+
+  if (!issue) {
+    throw new Error("Issue not found");
+  }
+
+  return issue;
+};

@@ -29,6 +29,7 @@ import { AdminProfilePage } from "./pages/admin/AdminProfilePage";
 import { AdminNotificationsPage } from "./pages/admin/AdminNotificationsPage";
 import { AllIssuesPage } from "./pages/admin/AllIssues";
 import { IssueReviewDetail } from "./pages/admin/IssueReviewDetail";
+import { IssueProgressPage } from "./pages/admin/IssueProgressPage";
 
 // Staff Pages & Layout
 import { StaffLayout } from "./layouts/StaffLayout";
@@ -155,6 +156,10 @@ const router = createBrowserRouter([
       {
         path: "issues",
         element: <AllIssuesPage />,
+      },
+      {
+        path: "issues/:id/progress",
+        element: <IssueProgressPage />,
       },
     ],
   },
