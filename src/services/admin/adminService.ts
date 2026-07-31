@@ -160,7 +160,7 @@ export const rejectIssue = async (
 export const assignStaff = async (
   issueId: string,
   adminId: Types.ObjectId,
-  staffId: Types.ObjectId, // Bring this back
+  staffId: Types.ObjectId,
 ) => {
   const issue = await Issue.findById(issueId).populate("reportedBy");
 
@@ -183,17 +183,20 @@ export const assignStaff = async (
   }
 
   issue.status = "assigned";
-  issue.assignedStaff = staffId;
+  issue.assignedStaff = staff._id;
   issue.assignedBy = adminId;
   issue.assignedAt = new Date();
 
   await issue.save();
 
-  await notificationService.notifyIssueAssigned(
-    issue.reportedBy,
-    issue,
-    staff.fullName,
-  );
+  await Promise.all([
+    notificationService.notifyIssueAssigned(
+      issue.reportedBy,
+      issue,
+      staff.fullName,
+    ),
+    notificationService.notifyIssueAssigned(staff, issue, staff.fullName),
+  ]);
 
   return issue;
 };

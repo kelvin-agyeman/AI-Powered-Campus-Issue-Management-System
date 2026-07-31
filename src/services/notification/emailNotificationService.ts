@@ -40,15 +40,22 @@ export const sendIssueAssignedEmail = async (
   name: string,
   issueTitle: string,
   staffName: string,
+  isAssignedStaff: boolean,
 ) => {
   await sendEmail({
     to: email,
     subject: "Issue Assigned",
-    html: `
-      <h2>Hello ${name},</h2>
-      <p>Your issue regarding <strong>"${issueTitle}"</strong> has been assigned to <strong>${staffName}</strong>.</p>
-      <p>They will be working on it shortly.</p>
-    `,
+    html: isAssignedStaff
+      ? `
+        <h2>Hello ${name},</h2>
+        <p>The issue <strong>"${issueTitle}"</strong> has been assigned to you.</p>
+        <p>Please review the issue and begin working on it as soon as possible.</p>
+      `
+      : `
+        <h2>Hello ${name},</h2>
+        <p>Your reported issue <strong>"${issueTitle}"</strong> has been assigned to <strong>${staffName}</strong>.</p>
+        <p>They will begin working on it shortly.</p>
+      `,
   });
 };
 

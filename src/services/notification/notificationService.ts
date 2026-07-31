@@ -65,10 +65,18 @@ export const notifyIssueAssigned = async (
 ) => {
   const issueTitle = issue.aiRecommendation?.title || "Reported Issue";
 
+  const isAssignedStaff = String(user._id) === String(issue.assignedStaff);
+
+  const title = "Issue Assigned";
+
+  const message = isAssignedStaff
+    ? `The issue "${issueTitle}" has been assigned to you.`
+    : `Your reported issue "${issueTitle}" has been assigned to ${staffName}.`;
+
   await createNotification(
     user._id,
-    "Issue Assigned",
-    `Your issue "${issueTitle}" has been assigned to ${staffName}.`,
+    title,
+    message,
     NOTIFICATION_TYPES.ISSUE_ASSIGNED,
     issue._id,
   );
@@ -78,6 +86,7 @@ export const notifyIssueAssigned = async (
     user.fullName,
     issueTitle,
     staffName,
+    isAssignedStaff,
   );
 };
 
