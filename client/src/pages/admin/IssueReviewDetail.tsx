@@ -21,7 +21,7 @@ import {
   useStaffByDepartment,
   useIssueDuplicates,
 } from "../../hooks/useAdmin";
-import type { PopulatedUser } from "../../types/issue.types";
+import type { PopulatedUser } from "../../types/user.types";
 import type { User } from "../../types/user.types";
 import {
   ASSIGNABLE_DEPARTMENTS,

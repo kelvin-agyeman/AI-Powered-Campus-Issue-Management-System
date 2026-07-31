@@ -5,15 +5,15 @@ export type CreateIssueType = {
   location: string;
 };
 
+export type IssueImageType = {
+  url: string;
+  publicId: string;
+};
+
 export type UpdateIssueType = {
   description?: string;
   location?: string;
   images?: IssueImageType[];
-};
-
-export type IssueImageType = {
-  url: string;
-  publicId: string;
 };
 
 export type IssueServiceCreateInput = CreateIssueType & {

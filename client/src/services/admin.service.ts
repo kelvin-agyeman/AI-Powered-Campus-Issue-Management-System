@@ -1,19 +1,8 @@
 import customFetch from "../utils/customFetch";
-import type { Issue } from "../types/issue.types";
-
-export interface GetIssuesResponse {
-  success: boolean;
-  data: {
-    issues: Issue[];
-  };
-}
-
-export interface SingleIssueResponse {
-  success: boolean;
-  data: {
-    issue: Issue;
-  };
-}
+import type {
+  GetIssuesResponse,
+  SingleIssueResponse,
+} from "../types/issue.types";
 
 export const getPendingIssues = async (): Promise<GetIssuesResponse> => {
   const response = await customFetch.get("/admin/issues/pending");

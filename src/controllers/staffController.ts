@@ -12,7 +12,7 @@ export const getAssignedIssues = async (req: Request, res: Response) => {
   res.status(StatusCodes.OK).json({
     success: true,
     count: issues.length,
-    data: issues,
+    data: { issues },
   });
 };
 
@@ -31,7 +31,7 @@ export const getAssignedIssueById = async (req: Request, res: Response) => {
 
   res.status(StatusCodes.OK).json({
     success: true,
-    data: issue,
+    data: { issue },
   });
 };
 

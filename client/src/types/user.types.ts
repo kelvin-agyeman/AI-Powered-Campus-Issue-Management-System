@@ -14,6 +14,14 @@ export interface User {
   isVerified: boolean;
 }
 
+export interface PopulatedUser {
+  _id: string;
+  fullName: string;
+  email: string;
+  institutionId: string;
+  avatar?: string;
+}
+
 export interface StudentUser extends User {
   role: "student";
 }

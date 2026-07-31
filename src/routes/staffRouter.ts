@@ -13,10 +13,9 @@ import {
   updateProgressSchema,
   resolveIssueSchema,
 } from "../validators/staff.validator";
+import { upload } from "../middleware/multerMiddleware";
 
-router
-  .route("/issues")
-  .get(getAssignedIssues);
+router.route("/issues").get(getAssignedIssues);
 
 router.route("/issues/:id").get(getAssignedIssueById);
 
@@ -28,7 +27,7 @@ router
 
 router
   .route("/issues/:id/resolve")
-  .patch(validate(resolveIssueSchema), resolveIssue);
+  .patch(upload.array("images", 5), validate(resolveIssueSchema), resolveIssue);
 
 router.route("/issues/:id/reopen").patch(reopenIssue);
 

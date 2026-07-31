@@ -112,6 +112,24 @@ export const sendEditRequestRejectedEmail = async (
   });
 };
 
+export const sendAssignmentAcceptedEmail = async (
+  email: string,
+  name: string,
+  issueTitle: string,
+  staffName: string,
+) => {
+  await sendEmail({
+    to: email,
+    subject: "Work Commenced on Assigned Issue",
+    html: `
+      <h2>Hello ${name},</h2>
+      <p><strong>${staffName}</strong> has accepted the assigned issue and has begun working on it.</p>
+      <p><strong>Issue:</strong> "${issueTitle}"</p>
+      <p>You can monitor the progress through the admin dashboard as updates are submitted.</p>
+    `,
+  });
+};
+
 export const sendAdminCreatedEmail = async (email: string, name: string) => {
   await sendEmail({
     to: email,

@@ -98,12 +98,21 @@ export const notifyAssignmentAccepted = async (issue: any, staffId: any) => {
 
   if (!admin || !staff) return;
 
+  if (!admin.email) return;
+
   await createNotification(
     admin._id,
     "Work Commenced",
     `${staff.fullName} has started working on the issue: "${issueTitle}".`,
     NOTIFICATION_TYPES.ISSUE_IN_PROGRESS || "ISSUE_IN_PROGRESS",
     issue._id,
+  );
+
+  await emailService.sendAssignmentAcceptedEmail(
+    admin.email,
+    admin.fullName,
+    issueTitle,
+    staff.fullName,
   );
 };
 

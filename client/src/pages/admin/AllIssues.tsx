@@ -13,8 +13,8 @@ import {
   useAssignIssue,
   useStaffByDepartment,
 } from "../../hooks/useAdmin";
-import type { PopulatedUser, Issue } from "../../types/issue.types";
-import type { User } from "../../types/user.types";
+import type { Issue } from "../../types/issue.types";
+import type { User, PopulatedUser } from "../../types/user.types";
 import {
   ASSIGNABLE_DEPARTMENTS,
   PRIORITY_LEVELS,

@@ -9,7 +9,8 @@ import {
 } from "lucide-react";
 import { useIssueProgress } from "../../hooks/useAdmin";
 import { format } from "date-fns";
-import type { ProgressUpdate, PopulatedUser } from "../../types/issue.types";
+import type { ProgressUpdate } from "../../types/issue.types";
+import type { PopulatedUser } from "../../types/user.types";
 
 export const IssueProgressPage = () => {
   const { id } = useParams<{ id: string }>();

@@ -1,3 +1,5 @@
+import type { PopulatedUser } from "./user.types";
+
 export interface IssueImage {
   url: string;
   publicId: string;
@@ -48,14 +50,6 @@ export type IssueStatus =
 
 export type AdminDecision = "approved" | "modified" | "rejected";
 
-export interface PopulatedUser {
-  _id: string;
-  fullName: string;
-  email: string;
-  institutionId: string;
-  avatar?: string;
-}
-
 export interface Issue {
   _id: string;
   description: string;
@@ -88,4 +82,18 @@ export interface Issue {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface GetIssuesResponse {
+  success: boolean;
+  data: {
+    issues: Issue[];
+  };
+}
+
+export interface SingleIssueResponse {
+  success: boolean;
+  data: {
+    issue: Issue;
+  };
 }
