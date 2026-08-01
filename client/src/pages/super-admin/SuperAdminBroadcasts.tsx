@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Megaphone, Send } from "lucide-react";
+import { Megaphone, Send, Loader2 } from "lucide-react";
+import { useSendBroadcast } from "../../hooks/useSuperAdmin";
 
 export const SuperAdminBroadcasts = () => {
   const [targetAudience, setTargetAudience] = useState("all");
@@ -7,10 +8,16 @@ export const SuperAdminBroadcasts = () => {
   const [message, setMessage] = useState("");
   const [priority] = useState("normal");
 
+  const { mutate: sendBroadcast, isPending } = useSendBroadcast(() => {
+    // Clear form on success
+    setTitle("");
+    setMessage("");
+    setTargetAudience("all");
+  });
+
   const handleSendBroadcast = (e: React.FormEvent) => {
     e.preventDefault();
-    // Maps to sendBroadcast({ target: targetAudience, title, message, priority })
-    console.log("Broadcasting:", { targetAudience, title, message, priority });
+    sendBroadcast({ targetAudience, title, message, priority });
   };
 
   return (
@@ -33,7 +40,8 @@ export const SuperAdminBroadcasts = () => {
               <select
                 value={targetAudience}
                 onChange={(e) => setTargetAudience(e.target.value)}
-                className="w-full cursor-pointer rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
+                disabled={isPending}
+                className="w-full cursor-pointer rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none disabled:bg-gray-100"
               >
                 <option value="all">Everyone (Students, Staff, Admins)</option>
                 <option value="students">All Students</option>
@@ -52,7 +60,8 @@ export const SuperAdminBroadcasts = () => {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., Scheduled System Maintenance"
                 required
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
+                disabled={isPending}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none disabled:bg-gray-100"
               />
             </div>
 
@@ -66,16 +75,27 @@ export const SuperAdminBroadcasts = () => {
                 rows={5}
                 placeholder="Type your announcement here..."
                 required
-                className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
+                disabled={isPending}
+                className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none disabled:bg-gray-100"
               />
             </div>
 
             <button
               type="submit"
-              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#4a0400] px-4 py-3 font-medium text-white transition-all hover:bg-red-900 focus:ring-2 focus:ring-[#4a0400] focus:ring-offset-2 focus:outline-none"
+              disabled={isPending}
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#4a0400] px-4 py-3 font-medium text-white transition-all hover:bg-red-900 focus:ring-2 focus:ring-[#4a0400] focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-70"
             >
-              <Send size={18} />
-              Send Broadcast Now
+              {isPending ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  Sending Broadcast...
+                </>
+              ) : (
+                <>
+                  <Send size={18} />
+                  Send Broadcast Now
+                </>
+              )}
             </button>
           </form>
         </div>

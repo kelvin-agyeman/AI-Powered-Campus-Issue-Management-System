@@ -1,44 +1,19 @@
 import { useState } from "react";
-import { Check, X, ArrowRight, ClipboardEdit } from "lucide-react";
+import { Check, X, ArrowRight, ClipboardEdit, Loader2 } from "lucide-react";
+import {
+  useEditRequests,
+  useProcessEditRequest,
+} from "../../hooks/useSuperAdmin";
 
 export const SuperAdminRequests = () => {
-  // Modal and Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
     null,
   );
   const [rejectionReason, setRejectionReason] = useState("");
 
-  // Mock data mapping to getEditRequests response
-  const requests = [
-    {
-      _id: "req1",
-      requestedBy: {
-        fullName: "Michael Barnes",
-        email: "mbarnes@student.edu",
-        institutionId: "OLD-1234",
-      },
-      newInstitutionId: "NEW-9988",
-      status: "pending",
-      createdAt: "2026-07-25T10:00:00Z",
-    },
-    {
-      _id: "req2",
-      requestedBy: {
-        fullName: "Sarah Connor",
-        email: "sconnor@student.edu",
-        institutionId: "OLD-5566",
-      },
-      newInstitutionId: "NEW-1122",
-      status: "pending",
-      createdAt: "2026-07-26T08:30:00Z",
-    },
-  ];
-
-  const handleOpenRejectModal = (id: string) => {
-    setSelectedRequestId(id);
-    setIsModalOpen(true);
-  };
+  // Query and Mutation Hooks
+  const { data, isLoading } = useEditRequests({ status: "pending" });
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -46,20 +21,30 @@ export const SuperAdminRequests = () => {
     setRejectionReason("");
   };
 
+  const { mutate: processRequest, isPending } = useProcessEditRequest(() => {
+    handleCloseModal();
+  });
+
+  const requests = data?.requests || [];
+
+  const handleOpenRejectModal = (id: string) => {
+    setSelectedRequestId(id);
+    setIsModalOpen(true);
+  };
+
   const handleRejectSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // This will eventually map to your reject backend route
-    console.log(
-      `Rejecting request ${selectedRequestId} for reason:`,
-      rejectionReason,
-    );
-
-    handleCloseModal();
+    if (selectedRequestId) {
+      processRequest({
+        action: "reject",
+        id: selectedRequestId,
+        reason: rejectionReason,
+      });
+    }
   };
 
   const handleApprove = (id: string) => {
-    // This will eventually map to your approve backend route
-    console.log(`Approving request ${id}`);
+    processRequest({ action: "approve", id });
   };
 
   return (
@@ -75,63 +60,69 @@ export const SuperAdminRequests = () => {
       </div>
 
       <div className="grid gap-4">
-        {requests.map((request) => (
-          <div
-            key={request._id}
-            className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="flex items-start gap-4">
-              <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-50 text-purple-600">
-                <ClipboardEdit size={20} />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">
-                  {request.requestedBy.fullName}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {request.requestedBy.email}
-                </p>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-[#4a0400]" />
+          </div>
+        ) : requests.length > 0 ? (
+          requests.map((request) => (
+            <div
+              key={request._id}
+              className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="flex items-start gap-4">
+                <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-50 text-purple-600">
+                  <ClipboardEdit size={20} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">
+                    {request.requestedBy.fullName}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {request.requestedBy.email}
+                  </p>
 
-                <div className="mt-3 flex items-center gap-3 rounded-lg bg-gray-50 p-3 text-sm">
-                  <div className="text-gray-500">
-                    <span className="block text-xs font-medium text-gray-400 uppercase">
-                      Current ID
-                    </span>
-                    <span className="font-mono line-through">
-                      {request.requestedBy.institutionId}
-                    </span>
-                  </div>
-                  <ArrowRight size={16} className="text-gray-400" />
-                  <div className="text-[#4a0400]">
-                    <span className="block text-xs font-medium text-gray-400 uppercase">
-                      Requested ID
-                    </span>
-                    <span className="font-mono font-semibold">
-                      {request.newInstitutionId}
-                    </span>
+                  <div className="mt-3 flex items-center gap-3 rounded-lg bg-gray-50 p-3 text-sm">
+                    <div className="text-gray-500">
+                      <span className="block text-xs font-medium text-gray-400 uppercase">
+                        Current ID
+                      </span>
+                      <span className="font-mono line-through">
+                        {request.requestedBy.institutionId}
+                      </span>
+                    </div>
+                    <ArrowRight size={16} className="text-gray-400" />
+                    <div className="text-[#4a0400]">
+                      <span className="block text-xs font-medium text-gray-400 uppercase">
+                        Requested ID
+                      </span>
+                      <span className="font-mono font-semibold">
+                        {request.newInstitutionId}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-2 border-t border-gray-100 pt-4 sm:border-0 sm:pt-0">
-              <button
-                onClick={() => handleOpenRejectModal(request._id)}
-                className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-200 focus:outline-none sm:flex-none"
-              >
-                <X size={16} className="text-red-500" /> Reject
-              </button>
-              <button
-                onClick={() => handleApprove(request._id)}
-                className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#4a0400] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-900 focus:ring-2 focus:ring-[#4a0400] focus:ring-offset-2 focus:outline-none sm:flex-none"
-              >
-                <Check size={16} /> Approve
-              </button>
+              <div className="flex items-center gap-2 border-t border-gray-100 pt-4 sm:border-0 sm:pt-0">
+                <button
+                  disabled={isPending}
+                  onClick={() => handleOpenRejectModal(request._id)}
+                  className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-200 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
+                >
+                  <X size={16} className="text-red-500" /> Reject
+                </button>
+                <button
+                  disabled={isPending}
+                  onClick={() => handleApprove(request._id)}
+                  className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#4a0400] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-900 focus:ring-2 focus:ring-[#4a0400] focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
+                >
+                  <Check size={16} /> Approve
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-
-        {requests.length === 0 && (
+          ))
+        ) : (
           <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white p-12 text-center text-gray-500 shadow-sm">
             <ClipboardEdit size={48} className="mb-4 text-gray-300" />
             <p className="text-lg font-medium text-gray-900">
@@ -155,7 +146,8 @@ export const SuperAdminRequests = () => {
               </h2>
               <button
                 onClick={handleCloseModal}
-                className="cursor-pointer rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                disabled={isPending}
+                className="cursor-pointer rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
               >
                 <X size={20} />
               </button>
@@ -171,8 +163,9 @@ export const SuperAdminRequests = () => {
                   rows={4}
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
+                  disabled={isPending}
                   placeholder="Please provide a detailed reason for rejecting this ID update request..."
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none disabled:bg-gray-100"
                 />
                 <p className="mt-1.5 text-xs text-gray-500">
                   This reason will be included in the email notification sent to
@@ -184,14 +177,17 @@ export const SuperAdminRequests = () => {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="cursor-pointer rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-gray-200 focus:outline-none"
+                  disabled={isPending}
+                  className="cursor-pointer rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-gray-200 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="cursor-pointer rounded-lg bg-red-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:outline-none"
+                  disabled={isPending}
+                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-red-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 >
+                  {isPending && <Loader2 size={16} className="animate-spin" />}
                   Confirm Rejection
                 </button>
               </div>

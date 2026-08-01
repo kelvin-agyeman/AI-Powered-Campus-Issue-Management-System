@@ -92,7 +92,9 @@ export const registerStaff = async (
 export const getAllUsers = async (
   filters: FilterUsersQuery,
 ): Promise<ServiceResponse> => {
-  const query: any = {};
+  const query: any = {
+    role: { $ne: "super_admin" },
+  };
 
   if (filters.role) query.role = filters.role;
   if (filters.isActive) query.isActive = filters.isActive === "true";

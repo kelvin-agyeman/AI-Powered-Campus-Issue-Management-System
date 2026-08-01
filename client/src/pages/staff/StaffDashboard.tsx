@@ -88,7 +88,7 @@ export const StaffDashboard = () => {
         <div className="flex gap-2 border-b border-gray-200 sm:border-none">
           <button
             onClick={() => setActiveTab("assigned")}
-            className={`pb-2 text-sm font-medium transition-colors sm:rounded-md sm:px-3 sm:py-1.5 sm:pb-0 ${
+            className={`cursor-pointer pb-2 text-sm font-medium transition-colors sm:rounded-md sm:px-3 sm:py-1.5 sm:pb-0 ${
               activeTab === "assigned"
                 ? "border-b-2 border-red-600 text-red-600 sm:border-none sm:bg-red-50"
                 : "text-gray-500 hover:text-gray-700"
@@ -98,7 +98,7 @@ export const StaffDashboard = () => {
           </button>
           <button
             onClick={() => setActiveTab("in_progress")}
-            className={`pb-2 text-sm font-medium transition-colors sm:rounded-md sm:px-3 sm:py-1.5 sm:pb-0 ${
+            className={`cursor-pointer pb-2 text-sm font-medium transition-colors sm:rounded-md sm:px-3 sm:py-1.5 sm:pb-0 ${
               activeTab === "in_progress"
                 ? "border-b-2 border-red-600 text-red-600 sm:border-none sm:bg-red-50"
                 : "text-gray-500 hover:text-gray-700"
@@ -108,7 +108,7 @@ export const StaffDashboard = () => {
           </button>
           <button
             onClick={() => setActiveTab("all")}
-            className={`pb-2 text-sm font-medium transition-colors sm:rounded-md sm:px-3 sm:py-1.5 sm:pb-0 ${
+            className={`cursor-pointer pb-2 text-sm font-medium transition-colors sm:rounded-md sm:px-3 sm:py-1.5 sm:pb-0 ${
               activeTab === "all"
                 ? "border-b-2 border-red-600 text-red-600 sm:border-none sm:bg-red-50"
                 : "text-gray-500 hover:text-gray-700"

@@ -7,37 +7,64 @@ import {
   Copy,
   TrendingUp,
   Building2,
+  Loader2,
 } from "lucide-react";
+import { useSuperAdminDashboardAnalytics } from "../../hooks/useSuperAdmin";
+import {
+  useAiImpactStats,
+  usePerformanceStats,
+  useDistributionStats,
+} from "../../hooks/useAnalytics";
 
 export const SuperAdminDashboard = () => {
-  // Mock data representing the combined payloads from getDashboardAnalytics,
-  // getAiDecisionAnalytics, getDuplicateAnalytics, and getDashboardStats
-  const analytics = {
-    users: { students: 1250, staff: 45, admins: 8, total: 1303 },
-    issues: { open: 142, resolved: 856, total: 998 },
-    requests: { pendingEdits: 12 },
-    ai: {
-      aiAssistedCount: 450,
-      overallAccuracy: 88.5,
-      categoryMatchRate: 91.2,
-      departmentMatchRate: 85.8,
-    },
-    duplicates: {
-      totalIssues: 998,
-      duplicateIssues: 45,
-      duplicateRatePercentage: 4.5,
-    },
-    categories: [
-      { category: "Plumbing", count: 340, percentage: 34 },
-      { category: "Electrical", count: 280, percentage: 28 },
-      { category: "Carpentry", count: 190, percentage: 19 },
-      { category: "IT Support", count: 188, percentage: 19 },
-    ],
-    departments: [
-      { department: "Maintenance", totalIssues: 810, activeIssues: 120 },
-      { department: "IT Department", totalIssues: 188, activeIssues: 22 },
-    ],
+  // Fetch data using the provided hooks
+  const { data: saData, isLoading: isSaLoading } =
+    useSuperAdminDashboardAnalytics();
+  const { data: aiData, isLoading: isAiLoading } = useAiImpactStats();
+  const { data: perfData, isLoading: isPerfLoading } = usePerformanceStats();
+  const { data: distData, isLoading: isDistLoading } = useDistributionStats();
+
+  const isLoading =
+    isSaLoading || isAiLoading || isPerfLoading || isDistLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-100 items-center justify-center">
+        <div className="flex flex-col items-center gap-2 text-gray-500">
+          <Loader2 className="h-8 w-8 animate-spin text-[#4a0400]" />
+          <p>Loading system analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Safely extract data with fallbacks
+  const analytics = saData?.analytics || {
+    users: { students: 0, staff: 0, admins: 0, total: 0 },
+    issues: { open: 0, resolved: 0, total: 0 },
+    requests: { pendingEdits: 0 },
   };
+
+  const ai = aiData?.data || {
+    aiAssistedCount: 0,
+    overallAccuracy: 0,
+    categoryMatchRate: 0,
+    departmentMatchRate: 0,
+  };
+
+  const duplicates = perfData?.data?.duplicates || {
+    totalIssues: 0,
+    duplicateIssues: 0,
+    duplicateRatePercentage: 0,
+  };
+
+  const categories = distData?.data?.categories || [];
+  const totalCategoriesCount = categories.reduce(
+    (acc, cat) => acc + cat.count,
+    0,
+  );
+
+  const departments = distData?.data?.departments || [];
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -65,6 +92,7 @@ export const SuperAdminDashboard = () => {
             <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
               <span>{analytics.users.students} Students</span>
               <span>{analytics.users.staff} Staff</span>
+              <span>{analytics.users.admins} Admins</span>
             </div>
           </div>
         </div>
@@ -134,7 +162,7 @@ export const SuperAdminDashboard = () => {
             <div className="flex flex-col items-center justify-center text-center">
               <div className="relative flex h-24 w-24 items-center justify-center rounded-full border-4 border-indigo-100">
                 <span className="text-2xl font-bold text-indigo-700">
-                  {analytics.ai.overallAccuracy}%
+                  {ai.overallAccuracy.toFixed(1)}%
                 </span>
                 {/* Visual ring representation */}
                 <svg
@@ -149,7 +177,7 @@ export const SuperAdminDashboard = () => {
                     stroke="currentColor"
                     strokeWidth="4"
                     className="text-indigo-500"
-                    strokeDasharray={`${analytics.ai.overallAccuracy * 3} 300`}
+                    strokeDasharray={`${ai.overallAccuracy * 3} 300`}
                   />
                 </svg>
               </div>
@@ -157,7 +185,7 @@ export const SuperAdminDashboard = () => {
                 Overall Accuracy
               </p>
               <p className="text-xs text-gray-500">
-                Based on {analytics.ai.aiAssistedCount} automated tickets
+                Based on {ai.aiAssistedCount} automated tickets
               </p>
             </div>
 
@@ -166,13 +194,13 @@ export const SuperAdminDashboard = () => {
                 <div className="mb-1 flex justify-between text-sm">
                   <span className="text-gray-600">Category Match</span>
                   <span className="font-medium">
-                    {analytics.ai.categoryMatchRate}%
+                    {ai.categoryMatchRate.toFixed(1)}%
                   </span>
                 </div>
                 <div className="h-2 w-full rounded-full bg-gray-100">
                   <div
                     className="h-2 rounded-full bg-indigo-500"
-                    style={{ width: `${analytics.ai.categoryMatchRate}%` }}
+                    style={{ width: `${ai.categoryMatchRate}%` }}
                   ></div>
                 </div>
               </div>
@@ -180,13 +208,13 @@ export const SuperAdminDashboard = () => {
                 <div className="mb-1 flex justify-between text-sm">
                   <span className="text-gray-600">Department Match</span>
                   <span className="font-medium">
-                    {analytics.ai.departmentMatchRate}%
+                    {ai.departmentMatchRate.toFixed(1)}%
                   </span>
                 </div>
                 <div className="h-2 w-full rounded-full bg-gray-100">
                   <div
                     className="h-2 rounded-full bg-indigo-400"
-                    style={{ width: `${analytics.ai.departmentMatchRate}%` }}
+                    style={{ width: `${ai.departmentMatchRate}%` }}
                   ></div>
                 </div>
               </div>
@@ -209,7 +237,7 @@ export const SuperAdminDashboard = () => {
                   Duplicate Rate
                 </p>
                 <h4 className="text-2xl font-bold text-gray-900">
-                  {analytics.duplicates.duplicateRatePercentage}%
+                  {duplicates.duplicateRatePercentage.toFixed(1)}%
                 </h4>
               </div>
               <div className="text-right">
@@ -217,17 +245,17 @@ export const SuperAdminDashboard = () => {
                   Filtered Issues
                 </p>
                 <h4 className="text-2xl font-bold text-rose-600">
-                  {analytics.duplicates.duplicateIssues}
+                  {duplicates.duplicateIssues}
                 </h4>
               </div>
             </div>
             <p className="text-sm text-gray-600">
               The AI has successfully identified and flagged{" "}
               <span className="font-semibold text-gray-900">
-                {analytics.duplicates.duplicateIssues}
+                {duplicates.duplicateIssues}
               </span>{" "}
-              overlapping reports out of {analytics.duplicates.totalIssues}{" "}
-              total submissions, streamlining staff workflows.
+              overlapping reports out of {duplicates.totalIssues} total
+              submissions, streamlining staff workflows.
             </p>
           </div>
         </div>
@@ -242,22 +270,32 @@ export const SuperAdminDashboard = () => {
             <h2 className="font-semibold text-gray-900">Category Trends</h2>
           </div>
           <div className="mt-5 space-y-4">
-            {analytics.categories.map((cat) => (
-              <div key={cat.category}>
-                <div className="mb-1 flex justify-between text-sm">
-                  <span className="font-medium text-gray-700">
-                    {cat.category}
-                  </span>
-                  <span className="text-gray-500">{cat.count} issues</span>
+            {categories.map((cat) => {
+              const percentage = totalCategoriesCount
+                ? ((cat.count / totalCategoriesCount) * 100).toFixed(1)
+                : 0;
+              return (
+                <div key={cat.category || "Unknown"}>
+                  <div className="mb-1 flex justify-between text-sm">
+                    <span className="font-medium text-gray-700">
+                      {cat.category || "Uncategorized"}
+                    </span>
+                    <span className="text-gray-500">{cat.count} issues</span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-gray-100">
+                    <div
+                      className="h-2 rounded-full bg-red-500"
+                      style={{ width: `${percentage}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <div className="h-2 w-full rounded-full bg-gray-100">
-                  <div
-                    className="h-2 rounded-full bg-red-500"
-                    style={{ width: `${cat.percentage}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
+            {categories.length === 0 && (
+              <p className="text-sm text-gray-500">
+                No category data available.
+              </p>
+            )}
           </div>
         </div>
 
@@ -283,10 +321,10 @@ export const SuperAdminDashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
-                {analytics.departments.map((dept) => (
-                  <tr key={dept.department}>
+                {departments.map((dept) => (
+                  <tr key={dept.department || "Unknown"}>
                     <td className="px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-900">
-                      {dept.department}
+                      {dept.department || "Unassigned"}
                     </td>
                     <td className="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-amber-600">
                       {dept.activeIssues}
@@ -296,6 +334,16 @@ export const SuperAdminDashboard = () => {
                     </td>
                   </tr>
                 ))}
+                {departments.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="px-4 py-4 text-center text-sm text-gray-500"
+                    >
+                      No department data available.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

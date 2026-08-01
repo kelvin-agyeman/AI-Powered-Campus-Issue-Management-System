@@ -26,9 +26,13 @@ router.route("/dashboard").get(getDashboardAnalytics);
 
 router.route("/broadcast").post(validate(broadcastSchema), sendBroadcast);
 
-router.route("/admins").post(validate(registerAdminSchema), registerAdmin);
+router
+  .route("/register/admin")
+  .post(validate(registerAdminSchema), registerAdmin);
 
-router.route("/staff").post(validate(registerStaffSchema), registerStaff);
+router
+  .route("/register/staff")
+  .post(validate(registerStaffSchema), registerStaff);
 
 router.route("/users").get(getAllUsers);
 

@@ -12,6 +12,7 @@ export interface User {
   department?: string;
   avatar?: string;
   isVerified: boolean;
+  isActive: boolean;
 }
 
 export interface PopulatedUser {
