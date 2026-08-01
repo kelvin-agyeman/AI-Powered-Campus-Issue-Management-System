@@ -15,8 +15,8 @@ export interface CreateStaffType extends CreateAdminType {
 export interface UpdateUserType {
   fullName?: string;
   email?: string;
+  institutionId?: string;
   department?: string;
-  isActive?: boolean;
 }
 
 export interface FilterUsersQuery {

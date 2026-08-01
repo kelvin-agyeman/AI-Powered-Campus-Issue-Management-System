@@ -12,7 +12,7 @@ import {
   useAllUsers,
   useRegisterUser,
   useToggleUserStatus,
-  // Add your update user hook here if available (e.g. useUpdateUser)
+  useUpdateUser,
 } from "../../hooks/useSuperAdmin";
 import { KNUST_DEPARTMENTS } from "../../../../src/utils/constants";
 
@@ -38,10 +38,9 @@ export const SuperAdminUsers = () => {
     fullName: "",
     email: "",
     institutionId: "",
-    role: "staff",
+    role: "staff", // Kept in state for conditional rendering, but removed from UI
     department: "",
   });
-  const [isUpdating, setIsUpdating] = useState(false); // Placeholder state for edit mutation loading
 
   // Queries and Mutations
   const { data: usersData, isLoading: isLoadingUsers } = useAllUsers();
@@ -60,6 +59,11 @@ export const SuperAdminUsers = () => {
       setIsRegisterModalOpen(false);
     },
   );
+
+  const { mutate: updateUser, isPending: isUpdating } = useUpdateUser(() => {
+    setIsEditModalOpen(false);
+    setEditingUserId(null);
+  });
 
   const { mutate: toggleUserStatus } = useToggleUserStatus();
 
@@ -98,22 +102,24 @@ export const SuperAdminUsers = () => {
   };
 
   // Handle Edit Submit
-  const handleEditSubmit = async (e: React.FormEvent) => {
+  const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUserId) return;
 
-    setIsUpdating(true);
-    try {
-      // TODO: Replace with your actual edit mutation call (e.g. updateUser({ id: editingUserId, data: editFormData }))
-      console.log("Updating user:", editingUserId, editFormData);
+    const updatePayload: Partial<typeof editFormData> = {
+      fullName: editFormData.fullName,
+      email: editFormData.email,
+      institutionId: editFormData.institutionId,
+    };
 
-      setIsEditModalOpen(false);
-      setEditingUserId(null);
-    } catch (error) {
-      console.error("Failed to update user", error);
-    } finally {
-      setIsUpdating(false);
+    if (editFormData.role === "staff") {
+      updatePayload.department = editFormData.department;
     }
+
+    updateUser({
+      id: editingUserId,
+      data: updatePayload,
+    });
   };
 
   return (
@@ -527,27 +533,7 @@ export const SuperAdminUsers = () => {
                 />
               </div>
 
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Role
-                </label>
-                <select
-                  value={editFormData.role}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      role: e.target.value,
-                    })
-                  }
-                  disabled={isUpdating}
-                  className="w-full cursor-pointer rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none disabled:bg-gray-100"
-                >
-                  <option value="student">Student</option>
-                  <option value="staff">Staff</option>
-                  <option value="admin">System Administrator</option>
-                </select>
-              </div>
-
+              {/* Conditionally display department only if the user's role is "staff" */}
               {editFormData.role === "staff" && (
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">

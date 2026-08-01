@@ -84,12 +84,24 @@ export const updateUserSchema = z.object({
     .max(50, { error: "Name cannot exceed 50 characters" })
     .optional(),
 
-  department: z
-    .enum(KNUST_DEPARTMENTS, { error: "Invalid department" })
+  email: z
+    .email({ error: "Please provide a valid email address" })
+    .trim()
+    .toLowerCase()
     .optional(),
 
-  role: z
-    .enum(["admin", "staff", "student"], { error: "Invalid role type" })
+  institutionId: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .length(8, { error: "Staff ID must be exactly 8 characters long" })
+    .regex(/^[a-zA-Z0-9]+$/, {
+      error: "Staff ID must contain only letters and numbers",
+    })
+    .optional(),
+
+  department: z
+    .enum(KNUST_DEPARTMENTS, { error: "Invalid department" })
     .optional(),
 });
 

@@ -45,8 +45,9 @@ export type CreateStaffType = {
 
 export type UpdateUserType = {
   fullName?: string;
+  email?: string;
+  institutionId?: string;
   department?: KNUST_DEPARTMENTS;
-  role?: "admin" | "staff" | "student";
 };
 
 export type FilterUsersQuery = {
