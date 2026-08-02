@@ -243,7 +243,7 @@ paths:
                 fullName: "Student 5"
       responses:
         "200":
-          description: user updated successfully
+          description: User updated successfully
 
   /user/update-email:
     patch:
@@ -332,7 +332,7 @@ paths:
                 reason: "made a mistake whilst entering my student id"
       responses:
         "200":
-          description: If this email is registered, a new verification link has been sent.
+          description: Details edit request submitted.
 
   /user/delete-avatar:
     delete:
@@ -409,6 +409,57 @@ paths:
         "200":
           description: Issue restored
 
+  /issues/{id}/images:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    delete:
+      summary: Delete Issue Images
+      tags:
+        - Issue Routes
+      responses:
+        "200":
+          description: Images deleted successfully
+
+  # ==========================================
+  # NOTIFICATION ROUTES
+  # ==========================================
+  /notifications:
+    get:
+      summary: Get User Notifications
+      tags:
+        - Notification Routes
+      responses:
+        "200":
+          description: List of notifications retrieved
+
+  /notifications/read-all:
+    patch:
+      summary: Mark All As Read
+      tags:
+        - Notification Routes
+      responses:
+        "200":
+          description: All notifications marked as read
+
+  /notifications/{id}/read:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    patch:
+      summary: Mark As Read
+      tags:
+        - Notification Routes
+      responses:
+        "200":
+          description: Notification marked as read
+
   # ==========================================
   # ADMIN ROUTES
   # ==========================================
@@ -445,6 +496,21 @@ paths:
         "200":
           description: Issue retrieved
 
+  /admin/issues/{id}/duplicates:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get Issue Duplicates
+      tags:
+        - Admin Routes
+      responses:
+        "200":
+          description: Duplicate issues retrieved
+
   /admin/issues/{id}/approve:
     parameters:
       - in: path
@@ -459,6 +525,58 @@ paths:
       responses:
         "200":
           description: Issue approved
+
+  /admin/issues/{id}/modify:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    patch:
+      summary: Modify Issue
+      tags:
+        - Admin Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                priority:
+                  type: string
+              example:
+                priority: "low"
+      responses:
+        "200":
+          description: Issue modified successfully
+
+  /admin/issues/{id}/reject:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    patch:
+      summary: Reject Issue
+      tags:
+        - Admin Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+              example:
+                reason: "Issue has recently been resolved"
+      responses:
+        "200":
+          description: Issue rejected
 
   /admin/issues/{id}/assign:
     parameters:
@@ -486,6 +604,21 @@ paths:
         "200":
           description: Staff assigned
 
+  /admin/issues/{id}/progress:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get Issue Progress Updates
+      tags:
+        - Admin Routes
+      responses:
+        "200":
+          description: Progress updates retrieved
+
   /admin/staff/{departmentName}:
     parameters:
       - in: path
@@ -503,6 +636,225 @@ paths:
           description: List of staff in department
 
   # ==========================================
+  # SUPER ADMIN ROUTES
+  # ==========================================
+  /super-admin/dashboard:
+    get:
+      summary: Get Dashboard Analytics
+      tags:
+        - Super Admin Routes
+      responses:
+        "200":
+          description: Dashboard data retrieved
+
+  /super-admin/broadcast:
+    post:
+      summary: Send Broadcast
+      tags:
+        - Super Admin Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                message:
+                  type: string
+                targetAudience:
+                  type: string
+              example:
+                title: "Terms of Service Update"
+                message: "We are updating our terms of service"
+                targetAudience: "all"
+      responses:
+        "200":
+          description: Broadcast sent successfully
+
+  /super-admin/register/admin:
+    post:
+      summary: Register Admin
+      tags:
+        - Super Admin Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                institutionId:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              example:
+                fullName: "Admin 2"
+                institutionId: "90123abc"
+                email: "admin2@gmail.com"
+                password: "Secret123!"
+      responses:
+        "201":
+          description: Admin registered
+
+  /super-admin/register/staff:
+    post:
+      summary: Register Staff
+      tags:
+        - Super Admin Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                institutionId:
+                  type: string
+                department:
+                  type: string
+                password:
+                  type: string
+              example:
+                fullName: "Staff 2"
+                email: "staff2@gmail.com"
+                institutionId: "ST789012"
+                department: "Health Services"
+                password: "Secret123!"
+      responses:
+        "201":
+          description: Staff registered
+
+  /super-admin/users:
+    get:
+      summary: Get All Users
+      tags:
+        - Super Admin Routes
+      parameters:
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: string
+          example: "admin"
+      responses:
+        "200":
+          description: List of all users retrieved
+
+  /super-admin/users/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get Single User
+      tags:
+        - Super Admin Routes
+      responses:
+        "200":
+          description: User details retrieved
+    patch:
+      summary: Update User
+      tags:
+        - Super Admin Routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+              example:
+                fullName: "Staff 1"
+      responses:
+        "200":
+          description: User updated successfully
+
+  /super-admin/users/{id}/deactivate:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    patch:
+      summary: Deactivate User
+      tags:
+        - Super Admin Routes
+      responses:
+        "200":
+          description: User deactivated
+
+  /super-admin/users/{id}/reactivate:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    patch:
+      summary: Reactivate User
+      tags:
+        - Super Admin Routes
+      responses:
+        "200":
+          description: User reactivated
+
+  /super-admin/edit-requests:
+    get:
+      summary: Get Edit Requests
+      tags:
+        - Super Admin Routes
+      responses:
+        "200":
+          description: List of edit requests retrieved
+
+  /super-admin/edit-requests/{id}/approve:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    patch:
+      summary: Approve Edit Request
+      tags:
+        - Super Admin Routes
+      responses:
+        "200":
+          description: Edit request approved
+
+  /super-admin/edit-requests/{id}/reject:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    patch:
+      summary: Reject Edit Request
+      tags:
+        - Super Admin Routes
+      responses:
+        "200":
+          description: Edit request rejected
+
+  # ==========================================
   # STAFF ROUTES
   # ==========================================
   /staff/issues:
@@ -513,6 +865,36 @@ paths:
       responses:
         "200":
           description: List of assigned issues
+
+  /staff/issues/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get Single Assigned Issue
+      tags:
+        - Staff Routes
+      responses:
+        "200":
+          description: Assigned issue details retrieved
+
+  /staff/issues/{id}/accept:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    patch:
+      summary: Accept Assignment
+      tags:
+        - Staff Routes
+      responses:
+        "200":
+          description: Assignment accepted
 
   /staff/issues/{id}/progress:
     parameters:
@@ -566,9 +948,51 @@ paths:
         "200":
           description: Issue resolved
 
+  /staff/issues/{id}/reopen:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    patch:
+      summary: Reopen Issue
+      tags:
+        - Staff Routes
+      responses:
+        "200":
+          description: Issue reopened successfully
+
   # ==========================================
   # ANALYTICS ROUTES
   # ==========================================
+  /analytics/dashboard:
+    get:
+      summary: Get Admin Dashboard
+      tags:
+        - Analytics Routes
+      responses:
+        "200":
+          description: Dashboard metrics retrieved
+
+  /analytics/distribution:
+    get:
+      summary: Get Core Distribution Analytics
+      tags:
+        - Analytics Routes
+      responses:
+        "200":
+          description: Distribution analytics retrieved
+
+  /analytics/performance:
+    get:
+      summary: Get Performance And Quality Analytics
+      tags:
+        - Analytics Routes
+      responses:
+        "200":
+          description: Performance analytics retrieved
+
   /analytics/ai-impact:
     get:
       summary: Get AI Impact Analytics
