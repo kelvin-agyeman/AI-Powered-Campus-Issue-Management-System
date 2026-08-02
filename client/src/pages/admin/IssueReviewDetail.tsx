@@ -27,7 +27,7 @@ import {
   ASSIGNABLE_DEPARTMENTS,
   ISSUE_CATEGORIES,
   PRIORITY_LEVELS,
-} from "../../../../src/utils/constants";
+} from "../../../../server/src/utils/constants";
 
 export const IssueReviewDetail = () => {
   const { id } = useParams<{ id: string }>();

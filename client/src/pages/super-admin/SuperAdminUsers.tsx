@@ -14,7 +14,7 @@ import {
   useToggleUserStatus,
   useUpdateUser,
 } from "../../hooks/useSuperAdmin";
-import { KNUST_DEPARTMENTS } from "../../../../src/utils/constants";
+import { KNUST_DEPARTMENTS } from "../../../../server/src/utils/constants";
 
 export const SuperAdminUsers = () => {
   const [searchTerm, setSearchTerm] = useState("");

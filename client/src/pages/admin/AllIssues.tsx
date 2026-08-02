@@ -18,7 +18,7 @@ import type { User, PopulatedUser } from "../../types/user.types";
 import {
   ASSIGNABLE_DEPARTMENTS,
   PRIORITY_LEVELS,
-} from "../../../../src/utils/constants";
+} from "../../../../server/src/utils/constants";
 
 export const AllIssuesPage = () => {
   const [filters, setFilters] = useState({
