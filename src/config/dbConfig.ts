@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const connectDB = async () => {
+export const connectDB = async () => {
   const mongoUrl = process.env.MONGO_URL;
 
   if (!mongoUrl) {
@@ -22,5 +22,3 @@ const connectDB = async () => {
     process.exit(1);
   }
 };
-
-export default connectDB;

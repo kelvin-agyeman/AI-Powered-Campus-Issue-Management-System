@@ -5,7 +5,7 @@ import morgan from "morgan";
 import helmet from "helmet";
 import notFound from "./middleware/notFound";
 import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware";
-import connectDB from "./db/connectDB";
+import { connectDB } from "./config/dbConfig";
 import authRouter from "./routes/authRouter";
 import userRouter from "./routes/userRouter";
 import issueRouter from "./routes/issueRouter";
