@@ -1,24 +1,19 @@
+import dns from "dns";
 import nodemailer from "nodemailer";
+
+dns.setDefaultResultOrder("ipv4first");
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
   secure: false,
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD,
   },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
-});
-
-transporter.verify((error, success) => {
-  if (error) {
-    console.log("SMTP connection failed:", error);
-  } else {
-    console.log("SMTP server ready:", success);
-  }
 });
 
 export type SendEmailPayload = {
