@@ -1,20 +1,18 @@
-import dns from "dns";
 import nodemailer from "nodemailer";
-
-dns.setDefaultResultOrder("ipv4first");
+import SMTPTransport from "nodemailer/lib/smtp-transport";
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
   secure: true,
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
+  family: 4,
+  pool: true,
+  maxConnections: 5,
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD,
   },
-});
+} as SMTPTransport.Options);
 
 export type SendEmailPayload = {
   to: string;
