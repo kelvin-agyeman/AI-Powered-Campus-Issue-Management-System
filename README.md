@@ -136,7 +136,7 @@ A production-ready, AI-powered campus issue reporting and management platform th
 - Mongoose
 - Zod
 - JSON Web Tokens (JWT)
-- Nodemailer
+- Brevo
 - Cloudinary
 
 ## Artificial Intelligence

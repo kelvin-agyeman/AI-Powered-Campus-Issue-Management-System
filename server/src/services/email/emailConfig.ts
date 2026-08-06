@@ -1,21 +1,3 @@
-import dns from "node:dns";
-import nodemailer from "nodemailer";
-
-dns.setDefaultResultOrder("ipv4first");
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-});
-
 export type SendEmailPayload = {
   to: string;
   subject: string;
@@ -28,15 +10,33 @@ export const sendEmail = async ({
   html,
 }: SendEmailPayload): Promise<unknown> => {
   try {
-    const info = await transporter.sendMail({
-      from: `"Campus Issue Management System" <${process.env.GMAIL_USER}>`,
-      to,
-      subject,
-      html,
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "api-key": process.env.BREVO_API_KEY as string,
+      },
+      body: JSON.stringify({
+        sender: {
+          name: "Campus Issue Management System",
+          email: process.env.BREVO_SENDER_EMAIL, 
+        },
+        to: [{ email: to }],
+        subject: subject,
+        htmlContent: html,
+      }),
     });
 
-    console.log("Email sent successfully! Message ID:", info.messageId);
-    return info;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Brevo API Error: ${JSON.stringify(errorData)}`);
+    }
+
+    const data = await response.json();
+    console.log("Email sent successfully! Message ID:", data.messageId);
+    return data;
+    
   } catch (error) {
     console.error("Email configuration exception:", error);
     return null;
