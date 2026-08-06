@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsup src/server.ts --format esm --clean",
+    "build": "tsup src/server.ts --format esm --clean && copyfiles -u 1 src/docs/**/*.yaml dist",
     "start": "node dist/server.js"
   },
   "keywords": [],
@@ -55,6 +55,7 @@
     "@types/swagger-ui-express": "^4.1.8",
     "@types/uuid": "^10.0.0",
     "@types/yamljs": "^0.2.34",
+    "copyfiles": "^2.4.1",
     "tsup": "^8.5.1",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"

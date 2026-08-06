@@ -22,8 +22,15 @@ import {
 import cloudinary from "cloudinary";
 import YAML from "yamljs";
 import swaggerUI from "swagger-ui-express";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import path from "path";
 
-const swaggerDocument = YAML.load("./src/docs/swagger.yaml");
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const swaggerDocument = YAML.load(path.join(__dirname, "docs", "swagger.yaml"));
+
+app.use(express.static(path.resolve(__dirname, "../../client/dist")));
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -74,6 +81,11 @@ app.use(
   analyticsRouter,
 );
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocument));
+
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api")) return next();
+  res.sendFile(path.resolve(__dirname, "../../client/dist", "index.html"));
+});
 
 app.use(notFound);
 app.use(errorHandlerMiddleware);
