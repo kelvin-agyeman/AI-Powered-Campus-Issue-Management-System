@@ -402,13 +402,9 @@ Runs ESLint.
 
 # Deployment
 
-The backend can be deployed on platforms such as:
+The frontend was deployed on Vercel
 
-- Render
-- Railway
-- Fly.io
-- DigitalOcean
-- AWS
+The backend was deployed on Render
 
 ---
 
