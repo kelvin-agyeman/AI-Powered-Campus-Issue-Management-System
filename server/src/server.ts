@@ -25,12 +25,11 @@ import swaggerUI from "swagger-ui-express";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import path from "path";
+import cors from "cors";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const swaggerDocument = YAML.load(path.join(__dirname, "docs", "swagger.yaml"));
-
-app.use(express.static(path.resolve(__dirname, "../../client/dist")));
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -46,6 +45,13 @@ app.use(express.json());
 app.use(helmet());
 app.use(cookieParser(process.env.JWT_SECRET));
 app.set("trust proxy", 1);
+
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  }),
+);
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", authenticateUser, userRouter);
@@ -81,11 +87,6 @@ app.use(
   analyticsRouter,
 );
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocument));
-
-app.use((req, res, next) => {
-  if (req.path.startsWith("/api")) return next();
-  res.sendFile(path.resolve(__dirname, "../../client/dist", "index.html"));
-});
 
 app.use(notFound);
 app.use(errorHandlerMiddleware);

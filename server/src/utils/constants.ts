@@ -70,10 +70,10 @@ export const ISSUE_CATEGORIES = [
 ] as const;
 
 export const AI_MODELS = [
-  "llama-3.3-70b-versatile", // Primary
-  "openai/gpt-oss-120b", // Fallback 1
-  "llama-3.1-8b-instant", // Fallback 2
-  "meta-llama/llama-4-scout-17b-16e-instruct", // Fallback 3
+  "openai/gpt-oss-120b", // Primary
+  "qwen/qwen3.8-27b", // Fallback 1
+  "qwen/qwen3.6-27b", // Fallback 2
+  "openai/gpt-oss-20b", // Fallback 3
 ] as const;
 
 export const NOTIFICATION_TYPES = {
