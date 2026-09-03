@@ -186,6 +186,23 @@ export const IssueReviewDetail = () => {
                   {issue.description}
                 </p>
               </div>
+              {issue.images && issue.images.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="mb-2 text-sm font-medium tracking-wider text-gray-500 uppercase">
+                    Attached Images
+                  </h3>
+                  <div className="flex gap-2 overflow-x-auto">
+                    {issue.images.map((img) => (
+                      <img
+                        key={img.publicId}
+                        src={img.url}
+                        alt="Issue Report"
+                        className="h-24 w-24 rounded-lg object-cover ring-1 ring-gray-200"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
