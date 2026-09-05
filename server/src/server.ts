@@ -41,14 +41,19 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
+const allowedOrigins: string[] = ["http://localhost:5173"];
+
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(process.env.CLIENT_URL);
+}
+
 app.use(express.json());
 app.use(helmet());
 app.use(cookieParser(process.env.JWT_SECRET));
 app.set("trust proxy", 1);
-
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
