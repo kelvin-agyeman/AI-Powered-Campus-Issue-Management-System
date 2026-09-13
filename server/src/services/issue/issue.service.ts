@@ -4,8 +4,8 @@ import {
   UpdateIssueType,
 } from "../../types/issue.types";
 import { Types } from "mongoose";
-import * as aiService from "../ai/aiService";
-import { detectDuplicate } from "../duplicate/duplicateDetectionService";
+import * as aiService from "../ai/ai.service";
+import { detectDuplicate } from "../duplicate/duplicateDetection.service";
 import cloudinary from "cloudinary";
 
 export const createIssue = async (inputData: IssueServiceCreateInput) => {

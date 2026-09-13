@@ -1,4 +1,4 @@
-import { sendEmail } from "./emailConfig";
+import { sendEmail } from "./email.config";
 import resetPasswordEmailHTML from "./resetPasswordEmailHTML";
 
 type VerificationEmailPayload = {

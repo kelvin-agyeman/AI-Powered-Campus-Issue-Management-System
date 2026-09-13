@@ -8,10 +8,10 @@ import {
   sendEditDetailsRequest,
   resendVerificationEmail,
   deleteAvatar,
-} from "../controllers/userController";
-import { authorizePermissions } from "../middleware/authMiddleware";
-import { upload } from "../middleware/multerMiddleware";
-import validate from "../middleware/validationMiddleware";
+} from "../controllers/user.controller";
+import { authorizePermissions } from "../middleware/auth.middleware";
+import { upload } from "../middleware/multer.middleware";
+import validate from "../middleware/validation.middleware";
 import {
   updateUserSchema,
   verifyUpdatedEmailSchema,

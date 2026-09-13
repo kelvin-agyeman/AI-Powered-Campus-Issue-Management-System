@@ -1,7 +1,7 @@
 import User from "../../models/User";
 import Issue from "../../models/Issue";
 import EditDetailsRequest from "../../models/EditDetailsRequest";
-import * as notificationService from "../notification/notificationService";
+import * as notificationService from "../notification/notification.service";
 import { StatusCodes } from "http-status-codes";
 import {
   CreateAdminType,

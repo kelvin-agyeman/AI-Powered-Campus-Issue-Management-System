@@ -4,21 +4,21 @@ const app = express();
 import morgan from "morgan";
 import helmet from "helmet";
 import notFound from "./middleware/notFound";
-import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware";
-import { connectDB } from "./config/dbConfig";
-import authRouter from "./routes/authRouter";
-import userRouter from "./routes/userRouter";
-import issueRouter from "./routes/issueRouter";
-import notificationRouter from "./routes/notificationRouter";
-import adminRouter from "./routes/adminRouter";
-import staffRouter from "./routes/staffRouter";
-import superAdminRouter from "./routes/superAdminRouter";
-import analyticsRouter from "./routes/analyticsRouter";
+import errorHandlerMiddleware from "./middleware/errorHandler.middleware";
+import { connectDB } from "./config/db.config";
+import authRouter from "./routes/auth.routes";
+import userRouter from "./routes/user.routes";
+import issueRouter from "./routes/issue.routes";
+import notificationRouter from "./routes/notification.routes";
+import adminRouter from "./routes/admin.routes";
+import staffRouter from "./routes/staff.routes";
+import superAdminRouter from "./routes/superAdmin.routes";
+import analyticsRouter from "./routes/analytics.routes";
 import cookieParser from "cookie-parser";
 import {
   authenticateUser,
   authorizePermissions,
-} from "./middleware/authMiddleware";
+} from "./middleware/auth.middleware";
 import cloudinary from "cloudinary";
 import YAML from "yamljs";
 import swaggerUI from "swagger-ui-express";

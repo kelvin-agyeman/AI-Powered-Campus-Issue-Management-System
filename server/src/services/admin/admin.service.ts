@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import Issue from "../../models/Issue";
 import User from "../../models/User";
-import * as notificationService from "../notification/notificationService";
+import * as notificationService from "../notification/notification.service";
 import { FilterIssuesQuery, ModifyIssueType } from "../../types/admin.types";
 import { KNUST_DEPARTMENTS } from "../../types/admin.types";
 

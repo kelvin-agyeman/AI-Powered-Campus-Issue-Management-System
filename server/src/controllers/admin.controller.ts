@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import * as adminService from "../services/admin/adminService";
+import * as adminService from "../services/admin/admin.service";
 import { Types } from "mongoose";
 import {
   AssignStaffType,

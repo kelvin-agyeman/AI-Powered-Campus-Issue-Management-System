@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as superAdminService from "../services/superAdmin/superAdminService";
+import * as superAdminService from "../services/superAdmin/superAdmin.service";
 import {
   CreateAdminType,
   CreateStaffType,

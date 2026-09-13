@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as userService from "../services/user/userService";
+import * as userService from "../services/user/user.service";
 import { StatusCodes } from "http-status-codes";
 
 export const getCurrentUser = async (req: Request, res: Response) => {

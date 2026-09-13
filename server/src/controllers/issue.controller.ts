@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import * as issueService from "../services/issue/issueService";
-import * as fileUploadService from "../services/fileUpload/fileUploadService";
+import * as issueService from "../services/issue/issue.service";
+import * as fileUploadService from "../services/fileUpload/fileUpload.service";
 import {
   CreateIssueType,
   UpdateIssueType,
@@ -41,7 +41,9 @@ export const getSingleIssue = async (req: Request, res: Response) => {
   const issue = await issueService.findIssueById(issueId);
 
   if (!issue) {
-    return res.status(StatusCodes.NOT_FOUND).json({ message: "Issue not found" });
+    return res
+      .status(StatusCodes.NOT_FOUND)
+      .json({ message: "Issue not found" });
   }
 
   res.status(StatusCodes.OK).json({ issue });
@@ -69,7 +71,8 @@ export const updateIssue = async (
     existingIssue.status !== "pending_admin_review"
   ) {
     return res.status(StatusCodes.BAD_REQUEST).json({
-      message: "Issue not found, or it can no longer be updated because it is under review",
+      message:
+        "Issue not found, or it can no longer be updated because it is under review",
     });
   }
 
@@ -115,7 +118,8 @@ export const deleteIssue = async (req: Request, res: Response) => {
 
   if (!deletedIssue) {
     return res.status(StatusCodes.BAD_REQUEST).json({
-      message: "Issue not found, or it can no longer be deleted because it is under review",
+      message:
+        "Issue not found, or it can no longer be deleted because it is under review",
     });
   }
 
@@ -143,37 +147,36 @@ export const restoreIssue = async (req: Request, res: Response) => {
 export const deleteImage = async (req: Request, res: Response) => {
   try {
     const { issueId } = req.params;
-    const { publicId } = req.body; 
-    const studentId = req.user!._id; 
+    const { publicId } = req.body;
+    const studentId = req.user!._id;
 
     if (!publicId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Image publicId is required" 
+      return res.status(400).json({
+        success: false,
+        message: "Image publicId is required",
       });
     }
 
     const updatedIssue = await issueService.deleteIssueImage(
-      issueId, 
-      studentId, 
-      publicId
+      issueId,
+      studentId,
+      publicId,
     );
 
     return res.status(200).json({
       success: true,
       message: "Image deleted successfully",
-      data: updatedIssue
+      data: updatedIssue,
     });
-
   } catch (error: any) {
     console.error("Delete image error:", error);
     // If it's our custom error message from the service
     if (error.message.includes("not found or cannot be modified")) {
       return res.status(404).json({ success: false, message: error.message });
     }
-    return res.status(500).json({ 
-      success: false, 
-      message: "An error occurred while deleting the image" 
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while deleting the image",
     });
   }
 };

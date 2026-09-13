@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import * as staffService from "../services/staff/staffService";
+import * as staffService from "../services/staff/staff.service";
 import { Types } from "mongoose";
 
 export const getAssignedIssues = async (req: Request, res: Response) => {

@@ -11,13 +11,13 @@ import {
   getIssueDuplicates,
   getStaffByDepartment,
   getIssueProgressUpdates,
-} from "../controllers/adminController";
+} from "../controllers/admin.controller";
 import {
   modifyIssueSchema,
   rejectIssueSchema,
   assignStaffSchema,
 } from "../validators/admin.validator";
-import validate from "../middleware/validationMiddleware";
+import validate from "../middleware/validation.middleware";
 
 router.route("/issues").get(getAllIssues);
 

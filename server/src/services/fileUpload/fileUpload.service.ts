@@ -1,5 +1,5 @@
 import cloudinary from "cloudinary";
-import { formatImage } from "../../middleware/multerMiddleware";
+import { formatImage } from "../../middleware/multer.middleware";
 
 export const uploadSingleFile = async (
   file: Express.Multer.File,

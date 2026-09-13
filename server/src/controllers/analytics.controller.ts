@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import * as analyticsService from "../services/analytics/analyticsService";
+import * as analyticsService from "../services/analytics/analytics.service";
 
 export const getAdminDashboard = async (req: Request, res: Response) => {
   try {

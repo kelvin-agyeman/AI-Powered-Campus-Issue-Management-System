@@ -1,7 +1,7 @@
 import { Router } from "express";
 const router = Router();
-import validate from "../middleware/validationMiddleware";
-import { upload } from "../middleware/multerMiddleware";
+import validate from "../middleware/validation.middleware";
+import { upload } from "../middleware/multer.middleware";
 import {
   createIssueSchema,
   updateIssueSchema,
@@ -14,7 +14,7 @@ import {
   deleteIssue,
   restoreIssue,
   deleteImage,
-} from "../controllers/issueController";
+} from "../controllers/issue.controller";
 
 router
   .route("/")

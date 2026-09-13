@@ -5,7 +5,7 @@ import {
   UpdateProgressInput,
   ResolveIssueInput,
 } from "../../types/staff.types";
-import * as notificationService from "../notification/notificationService";
+import * as notificationService from "../notification/notification.service";
 
 export const getAssignedIssues = async (
   staffId: Types.ObjectId,

@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import Notification from "../../models/Notification";
 import User from "../../models/User";
 import { NOTIFICATION_TYPES } from "../../utils/constants";
-import * as emailService from "./emailNotificationService";
+import * as emailService from "./emailNotification.service";
 
 const createNotification = async (
   recipientId: string | Types.ObjectId,

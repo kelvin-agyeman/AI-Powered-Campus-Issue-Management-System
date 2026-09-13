@@ -9,9 +9,9 @@ import {
   forgotPassword,
   resetPassword,
   createSuperAdmin,
-} from "../controllers/authController";
-import { authenticateUser } from "../middleware/authMiddleware";
-import validate from "../middleware/validationMiddleware";
+} from "../controllers/auth.controller";
+import { authenticateUser } from "../middleware/auth.middleware";
+import validate from "../middleware/validation.middleware";
 import {
   registerStudentSchema,
   verifyEmailSchema,

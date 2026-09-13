@@ -3,7 +3,7 @@ import {
   getUserNotifications,
   markAsRead,
   markAllAsRead,
-} from "../controllers/notificationController";
+} from "../controllers/notification.controller";
 const router = Router();
 
 router.route("/").get(getUserNotifications);

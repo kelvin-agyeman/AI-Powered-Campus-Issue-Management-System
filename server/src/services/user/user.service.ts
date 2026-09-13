@@ -4,8 +4,8 @@ import Token from "../../models/Token";
 import { StatusCodes } from "http-status-codes";
 import crypto from "crypto";
 import { hashPasswordToken } from "../../utils/passwordUtils";
-import * as emailService from "../email/emailService";
-import * as fileUploadService from "../fileUpload/fileUploadService";
+import * as emailService from "../email/email.service";
+import * as fileUploadService from "../fileUpload/fileUpload.service";
 
 const USER_AVATARS_FOLDER = "campus-issue-management-system-user-images";
 
@@ -156,7 +156,10 @@ export const resendNewEmailVerificationService = async (
   origin: string,
 ): Promise<ServiceResponse> => {
   if (!newEmail) {
-    return { status: StatusCodes.BAD_REQUEST, message: "Please provide an email" };
+    return {
+      status: StatusCodes.BAD_REQUEST,
+      message: "Please provide an email",
+    };
   }
 
   const user = await User.findOne({ newEmail });
@@ -164,7 +167,8 @@ export const resendNewEmailVerificationService = async (
   if (!user) {
     return {
       status: StatusCodes.OK,
-      message: "If this email is registered, a new verification link has been sent.",
+      message:
+        "If this email is registered, a new verification link has been sent.",
     };
   }
 
@@ -216,7 +220,8 @@ export const resendNewEmailVerificationService = async (
 
   return {
     status: StatusCodes.OK,
-    message: "If this email is registered, a new verification link has been sent.",
+    message:
+      "If this email is registered, a new verification link has been sent.",
   };
 };
 
@@ -298,7 +303,8 @@ export const sendEditDetailsRequestService = async (
 
   return {
     status: StatusCodes.OK,
-    message: "Request sent successfully. You will be logged out until your request is approved.",
+    message:
+      "Request sent successfully. You will be logged out until your request is approved.",
     data: editDetailsRequest,
     logoutRequired: true,
   };

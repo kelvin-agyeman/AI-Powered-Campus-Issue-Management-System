@@ -1,4 +1,4 @@
-import { sendEmail } from "../email/emailConfig";
+import { sendEmail } from "../email/email.config";
 
 export const sendIssueApprovedEmail = async (
   email: string,

@@ -5,7 +5,7 @@ import {
   getCoreDistributionAnalytics,
   getPerformanceAndQualityAnalytics,
   getAiImpactAnalytics,
-} from "../controllers/analyticsController";
+} from "../controllers/analytics.controller";
 
 router.route("/dashboard").get(getAdminDashboard);
 router.route("/distribution").get(getCoreDistributionAnalytics);

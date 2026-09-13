@@ -7,13 +7,13 @@ import {
   updateProgress,
   resolveIssue,
   reopenIssue,
-} from "../controllers/staffController";
-import validate from "../middleware/validationMiddleware";
+} from "../controllers/staff.controller";
+import validate from "../middleware/validation.middleware";
 import {
   updateProgressSchema,
   resolveIssueSchema,
 } from "../validators/staff.validator";
-import { upload } from "../middleware/multerMiddleware";
+import { upload } from "../middleware/multer.middleware";
 
 router.route("/issues").get(getAssignedIssues);
 

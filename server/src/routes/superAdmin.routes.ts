@@ -13,8 +13,8 @@ import {
   sendBroadcast,
   rejectEditRequest,
   updateUser,
-} from "../controllers/superAdminController";
-import validate from "../middleware/validationMiddleware";
+} from "../controllers/superAdmin.controller";
+import validate from "../middleware/validation.middleware";
 import {
   registerAdminSchema,
   registerStaffSchema,

@@ -3,7 +3,7 @@ import Token from "../../models/Token";
 import EditDetailsRequest from "../../models/EditDetailsRequest";
 import crypto from "crypto";
 import { comparePassword, hashPasswordToken } from "../../utils/passwordUtils";
-import * as emailService from "../email/emailService";
+import * as emailService from "../email/email.service";
 import { StatusCodes } from "http-status-codes";
 import {
   RegisterStudentType,

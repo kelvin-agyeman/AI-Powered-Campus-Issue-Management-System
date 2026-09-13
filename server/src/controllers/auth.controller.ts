@@ -5,7 +5,7 @@ import {
   LoginUserType,
   ResetPasswordType,
 } from "../types/auth.types";
-import * as authService from "../services/auth/authService";
+import * as authService from "../services/auth/auth.service";
 import { StatusCodes } from "http-status-codes";
 import User from "../models/User";
 
