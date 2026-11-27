@@ -13,7 +13,15 @@ export const registerStudent = async (
   req: Request<{}, {}, RegisterStudentType>,
   res: Response,
 ) => {
-  const origin = process.env.CLIENT_URL || "http://localhost:5173";
+  const origin =
+    process.env.NODE_ENV === "production"
+      ? process.env.CLIENT_URL
+      : "http://localhost:5173";
+
+  if (!origin) {
+    throw new Error("CLIENT_URL is not configured");
+  }
+
   const result = await authService.registerStudentService(req.body, origin);
 
   res.status(result.status).json({ message: result.message });
@@ -30,7 +38,15 @@ export const resendVerificationEmail = async (
   req: Request<{}, {}, { email: string }>,
   res: Response,
 ) => {
-  const origin = process.env.CLIENT_URL || "http://localhost:5173";
+  const origin =
+    process.env.NODE_ENV === "production"
+      ? process.env.CLIENT_URL
+      : "http://localhost:5173";
+
+  if (!origin) {
+    throw new Error("CLIENT_URL is not configured");
+  }
+
   const result = await authService.resendVerificationEmailService(
     req.body.email,
     origin,
@@ -66,7 +82,15 @@ export const forgotPassword = async (
   req: Request<{}, {}, { email: string }>,
   res: Response,
 ) => {
-  const origin = process.env.CLIENT_URL || "http://localhost:5173";
+  const origin =
+    process.env.NODE_ENV === "production"
+      ? process.env.CLIENT_URL
+      : "http://localhost:5173";
+
+  if (!origin) {
+    throw new Error("CLIENT_URL is not configured");
+  }
+
   const result = await authService.forgotPasswordService(
     req.body.email,
     origin,

@@ -37,7 +37,15 @@ export const updateEmail = async (
   req: Request<{}, {}, { newEmail: string }>,
   res: Response,
 ) => {
-  const origin = process.env.CLIENT_URL || "http://localhost:5173";
+  const origin =
+    process.env.NODE_ENV === "production"
+      ? process.env.CLIENT_URL
+      : "http://localhost:5173";
+
+  if (!origin) {
+    throw new Error("CLIENT_URL is not configured");
+  }
+
   const result = await userService.updateEmailService(
     req.user!._id.toString(),
     req.body.newEmail,
@@ -51,7 +59,15 @@ export const resendVerificationEmail = async (
   req: Request<{}, {}, { newEmail: string }>,
   res: Response,
 ) => {
-  const origin = process.env.CLIENT_URL || "http://localhost:5173";
+  const origin =
+    process.env.NODE_ENV === "production"
+      ? process.env.CLIENT_URL
+      : "http://localhost:5173";
+
+  if (!origin) {
+    throw new Error("CLIENT_URL is not configured");
+  }
+
   const result = await userService.resendNewEmailVerificationService(
     req.body.newEmail,
     origin,
